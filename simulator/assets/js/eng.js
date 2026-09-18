@@ -21,10 +21,10 @@ const ENG = (() => {
   const DEFAULT = {
     wing:   { b: 2.6, S: 0.62, airfoil: "NACA2412", e: 0.85, CD0: 0.035 },
     batt:   { cells: 6, capAh: 16.0 },           // 6S2P 21700
-    motorL: { model: "MN2814-KV900", kv: 900, m: 0.129 },
+    motorL: { model: "AT2814-KV900", kv: 900, m: 0.129 },
     escL:   { model: "20A", m: 0.018 },
     propL:  { model: "10×4.5 in", d: 0.254, m: 0.024 },
-    motorP: { model: "MN3110-KV650", kv: 650, m: 0.230 },
+    motorP: { model: "MN3110-KV700", kv: 700, m: 0.230 },
     escP:   { model: "40A", m: 0.040 },
     propP:  { model: "13×6.5 in", d: 0.330, m: 0.045 },
     fixed:  {                                    // 与载荷选择无关的机体项
@@ -43,7 +43,8 @@ const ENG = (() => {
   /* ---------- 重量堆叠 ---------- */
   function mass(cfg) {
     const f = cfg.fixed;
-    const battKg = (cfg.batt.cells * 3.7 * cfg.batt.capAh) / BATT_EN_DENS / 1000 * 1000; // Wh/250 → kg
+    // 250 Wh/kg 为电芯级能量密度；成组系数（BMS/箱体）约 +15%~20%，概念设计阶段并入结构余量
+    const battKg = (cfg.batt.cells * 3.7 * cfg.batt.capAh) / BATT_EN_DENS;
     const loadsKg = Object.values(cfg.loads).reduce((s, l) => s + (l.on ? l.m : 0), 0);
     const propulsionL = 4 * (cfg.motorL.m + cfg.escL.m + cfg.propL.m);
     const propulsionP = cfg.motorP.m + cfg.escP.m + cfg.propP.m;
@@ -85,11 +86,12 @@ const ENG = (() => {
     return { CL, CD, D, Paero, Pelec };
   }
 
-  /* ---------- 功率-空速扫描（性能舱曲线） ---------- */
+  /* ---------- 功率-空速扫描（性能舱曲线），不绘制失速以下区段 ---------- */
   function polar(cfg, mtow, vLo = 11, vHi = 30, n = 60) {
+    const lo = Math.max(vLo, stall(cfg, mtow).v * 1.1);
     const pts = [];
     for (let i = 0; i <= n; i++) {
-      const v = vLo + (vHi - vLo) * i / n;
+      const v = lo + (vHi - lo) * i / n;
       pts.push([v, cruise(cfg, mtow, v).Pelec]);
     }
     return pts;
@@ -102,7 +104,7 @@ const ENG = (() => {
     const vt = vtol(cfg, mtow);
     const pc = cruise(cfg, mtow, cfg.vCruise).Pelec;
     const tCruise = Math.max(0, (avail - vt.eTotal) / pc);        // h
-    const vGround = Math.max(1, cfg.vCruise - wind);
+    const vGround = Math.max(0, cfg.vCruise - wind);
     return {
       battWh, avail, vtol: vt, pCruise: pc,
       enduranceH: tCruise,
@@ -131,8 +133,8 @@ const ENG = (() => {
     const len = p.lenKm * 1000;
     const perLineShots = Math.floor(len / shotGap) + 1;
     const photos = nLines * perLineShots;
-    const turnR = 45;                                                       // 转弯过渡修正半径 m
-    const pathLen = nLines * len + (nLines - 1) * Math.PI * turnR * 0.5;   // 半 U 型转弯
+    const turnR = 45;                                                       // 半 U 型转弯过渡半径 m
+    const pathLen = nLines * len + (nLines - 1) * Math.PI * turnR * 0.5;   // 90° 弧长，等效半径 R/2
     const tFly = pathLen / p.vGnd / 60;                                     // min
     const tTot = tFly + 3.2;                                                // +垂起/过渡/降落
     const eNeed = endurance(cfg, mtow);
@@ -142,22 +144,29 @@ const ENG = (() => {
   }
 
   /* ---------- 合规判定（安全舱） ----------
-   * 依据：《无人驾驶航空器飞行管理暂行条例》（国务院令第761号，2024-01-01施行）
-   * 轻型：空机重量 < 4kg 且最大起飞重量 < 7kg，性能满足空域保持能力要求。
+   * 依据：《无人驾驶航空器飞行管理暂行条例》（国务院令第761号，2024-01-01施行）第62条；
+   * 空机重量按民航局口径【含电池、不含任务载荷】（AC-91-FS-2015-31 §3.16）。
+   * 微型：空机重量 ≤ 0.25kg；
+   * 轻型：空机重量 ≤ 4kg 且 MTOW ≤ 7kg（另需空域保持能力等条件）；
+   * 小型：空机重量 ≤ 15kg 且 MTOW ≤ 25kg（空机 > 4kg 时即落此类别，
+   *        操控员须持 CAAC 执照、作业单位须取得运营合格证）。
    */
   function compliance(cfg, mtow) {
-    const light = mtow < 7;
-    const micro = mtow < 0.25;
+    const m = mass(cfg);
+    const emptyKg = mtow - m.loadsKg;             // 空机重量（含电池）
+    const micro = emptyKg <= 0.25;
+    const light = !micro && mtow <= 7 && emptyKg <= 4;
+    const small = !micro && !light && mtow <= 25 && emptyKg <= 15;
     return {
-      category: micro ? "微型" : (light ? "轻型" : "小型"),
-      light, mtow,
+      category: micro ? "微型" : (light ? "轻型" : (small ? "小型" : "中型及以上")),
+      light, small, mtow, emptyKg,
       items: [
-        { t: "最大起飞重量 " + mtow.toFixed(2) + " kg < 7 kg，判定为" + (micro ? "微型" : "轻型") + "无人机，适航管理走轻型类别", ok: light },
-        { t: "具备空域保持能力：电子围栏 + ADS-B 接收 + RTK 高精度定位（轻型号照要求）", ok: true },
-        { t: "作业真高 ≤ 120 m，在适飞空域内飞行无需空域申请", ok: true },
-        { t: "实名登记：民用无人驾驶航空器实名制注册（UOM 平台）", ok: true },
-        { t: "经营性作业：需取得无人驾驶航空器运营合格证，操控员持 CAAC 执照", ok: true },
-        { t: "人口密集区上空作业需提前评估并采取必要安全措施", ok: true },
+        { t: "最大起飞重量 " + mtow.toFixed(2) + " kg ≤ 25 kg，空机重量（含电池，不含任务载荷）" + emptyKg.toFixed(2) + " kg > 4 kg，判定为小型无人机（条例第 62 条）", ok: small },
+        { t: "小型类别强制要求：操控员持 CAAC 执照（第 16 条），作业单位取得运营合格证（第 11 条）", ok: true },
+        { t: "具备空域保持能力与可靠被监视能力：电子围栏 + 远程识别广播（GB 42590）+ ADS-B 接收", ok: true },
+        { t: "作业真高 ≤ 120 m 且位于管制空域之外，适飞空域内飞行无需空域申请（第 19/31 条）", ok: true },
+        { t: "实名登记：民用无人驾驶航空器综合管理平台（UOM）实名注册", ok: true },
+        { t: "建议投保第三者责任险，人口密集区上空作业提前评估并设应急降落区", ok: true },
       ],
     };
   }

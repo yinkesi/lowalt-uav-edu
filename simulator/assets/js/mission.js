@@ -18,7 +18,9 @@ const MISSION = (() => {
   function prep(cv) {
     const dpr = window.devicePixelRatio || 1;
     const w = cv.clientWidth, h = cv.clientHeight;
-    cv.width = w * dpr; cv.height = h * dpr;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
     const g = cv.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
@@ -70,7 +72,6 @@ const MISSION = (() => {
     grad.addColorStop(0, COL.blue); grad.addColorStop(.5, COL.violet); grad.addColorStop(1, COL.pink);
     g.strokeStyle = grad; g.lineWidth = 1.8; g.lineJoin = "round";
     photoPts = [];
-    const rTurn = Math.min(18, gapY / 2.4);
     g.beginPath();
     for (let i = 0; i < n; i++) {
       const y = y0 + gapY * (i + 0.5);
@@ -80,8 +81,11 @@ const MISSION = (() => {
       g.lineTo(ltr ? xb : xa, y);
       if (i < n - 1) {
         const yn = y0 + gapY * (i + 1.5);
-        // 半 U 转弯
-        g.arc(ltr ? xb : xa, (y + yn) / 2, (yn - y) / 2, ltr ? -Math.PI / 2 : Math.PI / 2, ltr ? Math.PI / 2 : -Math.PI / 2, ltr);
+        // 半 U 型转弯，统一向测区外侧凸（真实航飞转弯在测区外完成）
+        g.arc(ltr ? xb : xa, (y + yn) / 2, (yn - y) / 2,
+              ltr ? -Math.PI / 2 : Math.PI / 2,
+              ltr ? Math.PI / 2 : -Math.PI / 2,
+              !ltr);
       }
       // 照片点
       const step = r.shotGap * s;
@@ -140,9 +144,19 @@ const MISSION = (() => {
     return { blocks, targets };
   }
 
-  /* 将场景坐标映射到实际画布尺寸（设计稿 720×380 → 画布 w×h） */
+  /* 将场景坐标映射到实际画布尺寸（设计稿 720×380 → 画布 w×h）。
+   * 同时换算米制实地坐标：约定设计稿 720 px 跨 1440 m（2 m/px），与窗口宽度无关，
+   * 供 WGS84 坐标解算使用。 */
+  const DESIGN_W = 720, DESIGN_H = 380, M_PER_PX = 2;
+
   function mapScene(objs, w, h) {
-    return objs.map(o => ({ ...o, x: o.x / 720 * w, y: o.y / 380 * h }));
+    return objs.map(o => ({
+      ...o,
+      x: o.x / DESIGN_W * w,
+      y: o.y / DESIGN_H * h,
+      mx: o.x * M_PER_PX,          // 东向偏移 m（自场景原点）
+      my: o.y * M_PER_PX,          // 南向偏移 m
+    }));
   }
 
   const PATH = [];          // 巡检路径（ Snake 扫描）
@@ -255,7 +269,9 @@ const MISSION = (() => {
     g.fillText("巡检进度 " + Math.min(100, st.t * 100).toFixed(0) + "%   ·   已识别 " + st.found.length + " 处", 14, 12);
   }
 
-  /* 生成标准化巡检报告文本（模拟机载数据 → 地面站大模型成报） */
+  /* 生成标准化巡检报告文本（模拟机载数据 → 地面站大模型成报）。
+   * 坐标换算：目标携带米制偏移 mx/my（设计稿 2 m/px，与窗口宽度无关），
+   * 纬度 1° ≈ 111 320 m，经度 1° ≈ 111 320 × cos(纬度) m。 */
   function report(found, meta) {
     const cnt = { pollution: 0, illegal: 0, debris: 0 };
     found.forEach(t => cnt[t.kind.key]++);
@@ -263,6 +279,8 @@ const MISSION = (() => {
     const pad = n => String(n).padStart(2, "0");
     const ts = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
     const lon0 = 121.5037, lat0 = 31.2829; // 示例作业区（示意坐标）
+    const M_PER_DEG_LAT = 111320;
+    const M_PER_DEG_LON = M_PER_DEG_LAT * Math.cos(lat0 * Math.PI / 180); // ≈ 95 136 m @ 31.28°N
     const lines = [];
     lines.push("低空巡检标准化工作报告");
     lines.push("任务编号：LY100-PATROL-" + ts.replace(/[-: ]/g, "").slice(0, 12));
@@ -275,7 +293,7 @@ const MISSION = (() => {
     lines.push("二、问题清单");
     const idx = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧"];
     found.forEach((t, i) => {
-      const lon = (lon0 + t.x / 111000).toFixed(6), lat = (lat0 + t.y / 111000).toFixed(6);
+      const lon = (lon0 + t.mx / M_PER_DEG_LON).toFixed(6), lat = (lat0 + t.my / M_PER_DEG_LAT).toFixed(6);
       lines.push(idx[i] + " " + t.kind.name + "（置信度 " + (t.conf * 100).toFixed(1) + "%）· WGS84 " + lon + "E " + lat + "N · 已留证（可见光+位置包）");
     });
     if (!found.length) lines.push("（无）");

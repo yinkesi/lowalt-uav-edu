@@ -16,8 +16,9 @@
     const DPR = window.devicePixelRatio || 1;
     function loop() {
       if (!cv.isConnected) return;
+      const DPR = window.devicePixelRatio || 1;
       const w = cv.clientWidth, h = cv.clientHeight;
-      if (cv.width !== w * DPR) { cv.width = w * DPR; cv.height = h * DPR; }
+      if (cv.width !== Math.round(w * DPR)) { cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR); }
       const g = cv.getContext("2d");
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
       g.clearRect(0, 0, w, h);
@@ -94,12 +95,12 @@
     $("#dStall").textContent = fmt(st.v, 1);
     $("#dHover").textContent = fmt(vt.pHover, 0);
     $("#dDisc").textContent = fmt(vt.discLoad, 0);
-    // 合规卡
+    // 合规卡（重建 innerHTML 以保留图标）
     const cp = ENG.compliance(CFG, m.mtow);
-    $("#dCat").textContent = cp.category + "无人机";
+    $("#dCat").innerHTML = `<span class="sym">${cp.small ? "check_circle" : "bolt"}</span>${cp.category}无人机 · 空机 ${cp.emptyKg.toFixed(2)} kg`;
     const ok = $("#dCompOk");
-    ok.classList.toggle("warn", !cp.light);
-    ok.textContent = cp.light ? "✓ 满足轻型类别（MTOW < 7 kg）" : "✗ 超出轻型上限 7 kg，进入小型类别，适航要求显著提高";
+    ok.classList.toggle("warn", !cp.small);
+    ok.textContent = cp.small ? "✓ 小型类别（条例第 62 条）：操控员持证 + 单位运营合格证" : "✗ 超出小型上限（空机 15 kg / MTOW 25 kg）";
     // 载荷清单
     const ul = $("#loadList");
     ul.innerHTML = "";
@@ -127,14 +128,15 @@
   function renderPerf() {
     const m = ENG.mass(CFG);
     const pts = ENG.polar(CFG, m.mtow);
-    // 最小功率点
+    // 经济速度点（扫描区间内最小功率；理论最小功率点位于失速速度以下，不适用）
     let best = pts[0];
     pts.forEach(p => { if (p[1] < best[1]) best = p; });
     const cvA = $("#perfPolar");
     CHART.line(cvA, pts, {
+      xMin: pts[0][0],
       xLab: "真空速 (m/s)", yLab: "需用电功率 (W)", fill: true,
       marks: [
-        { x: best[0], y: best[1], label: "最小功率 " + fmt(best[1], 0) + " W @ " + fmt(best[0], 1) + " m/s" },
+        { x: best[0], y: best[1], label: "经济速度下限 " + fmt(best[1], 0) + " W @ " + fmt(best[0], 1) + " m/s" },
         { x: CFG.vCruise, y: ENG.cruise(CFG, m.mtow, CFG.vCruise).Pelec, label: "巡航 " + fmt(CFG.vCruise, 0) + " m/s" },
       ],
       xFmt: v => fmt(v, 0), yFmt: v => fmt(v, 0),
@@ -150,6 +152,7 @@
     const cur = ENG.mass(CFG).loadsKg;
     const curE = ENG.endurance(CFG, m.mtow).enduranceH * 60;
     CHART.line($("#perfLoad"), loadPts, {
+      xMin: Math.min(0.4, cur),
       xLab: "任务载荷质量 (kg)", yLab: "理论航时 (min)", fill: true,
       marks: [{ x: cur, y: curE, label: "当前构型 " + fmt(curE, 0) + " min" }],
       xFmt: v => fmt(v, 1), yFmt: v => fmt(v, 0),
@@ -172,7 +175,12 @@
   function bindPerf() {
     const sl = $("#wind");
     sl.addEventListener("input", () => { wind = +sl.value; renderPerf(); });
-    window.addEventListener("resize", () => { renderPerf(); });
+    // 窗口尺寸变化后全部画布重绘（150 ms 防抖），避免位图拉伸模糊
+    let rzT = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(rzT);
+      rzT = setTimeout(() => { renderDesign(); renderPerf(); renderSurvey(); }, 150);
+    });
   }
 
   /* ============ 任务舱 A：航测 ============ */
@@ -188,8 +196,11 @@
     $("#sPhotos").textContent = r.photos;
     $("#sPath").textContent = fmt(r.pathKm, 1);
     $("#sTime").textContent = fmt(r.tTot, 0);
-    $("#sSortie").textContent = r.sorties === 1 ? "单架次可完成 ✓" : "建议拆分 " + r.sorties + " 架次";
+    $("#sSortie").innerHTML = `<span class="sym">${r.sorties === 1 ? "check_circle" : "bolt"}</span>` +
+      (r.sorties === 1 ? "单架次可完成 ✓" : "建议拆分 " + r.sorties + " 架次");
     $("#sSortie").classList.toggle("warn", r.sorties > 1);
+    // 航高超限提示：轻型适飞真高 120 m
+    $("#sAltWarn").style.display = SP.altM > 120 ? "" : "none";
     $("#sSwath").textContent = fmt(r.swathW, 1) + " m";
     $("#sGap").textContent = fmt(r.lineGap, 1) + " m";
   }
@@ -239,14 +250,16 @@
       MISSION.startInspection($("#patrolCv"),
         (t, progress) => {
           const li = document.createElement("li");
-          const lon = (121.5037 + t.x / 111000).toFixed(6);
-          const lat = (31.2829 + t.y / 111000).toFixed(6);
+          const M_LAT = 111320, M_LON = M_LAT * Math.cos(31.2829 * Math.PI / 180);
+          const lon = (121.5037 + t.mx / M_LON).toFixed(6);
+          const lat = (31.2829 + t.my / M_LAT).toFixed(6);
           li.innerHTML = `<span class="dot" style="background:${t.kind.color}"></span><div><b>${t.kind.name}</b> 置信度 ${(t.conf * 100).toFixed(1)}%<small>WGS84 ${lon}E, ${lat}N · 已留证</small></div>`;
           feed.prepend(li);
         },
         (found) => {
           btn.dataset.run = "0"; btn.textContent = "▶ 重新执行巡检";
-          const meta = { altM: SP.altM, v: SP.vGnd, wind: 3.2, photos: 412, area: "某河段沿线 2.0 km² 示范区（演示数据）" };
+          const m = ENG.mass(CFG);
+          const meta = { altM: SP.altM, v: SP.vGnd, wind: Math.round(wind) || 3.2, photos: 412, area: "某河段沿线 2.0 km² 示范区（演示数据）" };
           const txt = MISSION.report(found, meta);
           let i = 0;
           clearInterval(reportTimer);

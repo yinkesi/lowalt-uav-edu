@@ -58,7 +58,7 @@
 <!-- ================= 指标条 ================= -->
 <div class="stats">
   <div class="shell stats-inner">
-    <div class="stat rv"><span class="num" data-count="5.22" data-dec="2">0</span><sup style="font-size:.45em;color:var(--ink-3)">kg</sup><small>最大起飞重量</small><p>轻型类别 · 合规友好</p></div>
+    <div class="stat rv"><span class="num" data-count="5.22" data-dec="2">0</span><sup style="font-size:.45em;color:var(--ink-3)">kg</sup><small>最大起飞重量</small><p>小型类别 · 合规路径清晰</p></div>
     <div class="stat rv"><span class="num" data-count="90" data-dec="0">0</span><sup style="font-size:.45em;color:var(--ink-3)">min</sup><small>标称航时</small><p>巡航 19 m/s · 航程 100 km</p></div>
     <div class="stat rv"><span class="num" data-count="1.64" data-dec="2">0</span><sup style="font-size:.45em;color:var(--ink-3)">cm</sup><small>可见光 GSD@120m</small><p>满足 1:500 精度要求</p></div>
     <div class="stat rv"><span class="num" data-count="10" data-dec="0">0</span><sup style="font-size:.45em;color:var(--ink-3)">cm</sup><small>视觉引导着陆精度</small><p>RTK + ArUco 地标融合</p></div>
@@ -85,7 +85,7 @@
           </div>
           <label style="display:flex;justify-content:space-between;font:500 12px var(--mono);letter-spacing:.05em;color:var(--ink-2);margin:18px 0 6px">任务载荷组合（点选切换）</label>
           <ul id="loadList" style="list-style:none"></ul>
-          <div class="chart-note">基准动力选型：升力 4× MN2814-KV900 + 10×4.5 桨；巡航 1× MN3110-KV650 尾推 + 13×6.5 桨。可在《设计方案》中查看选型对比计算书。</div>
+          <div class="chart-note">基准动力选型：升力 4× AT2814-KV900 + 10×4.5 桨；巡航 1× MN3110-KV700 尾推 + 13×6.5 桨。选型对比计算书见《一体化设计方案》§3。</div>
         </div>
       </div>
       <div class="panel rv">
@@ -101,7 +101,7 @@
             <div class="read"><b><span id="dEnd">—</span></b><small>理论航时 (min)</small></div>
           </div>
           <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-            <span class="badge ok" id="dCat"><span class="sym">check_circle</span>轻型无人机</span>
+            <span class="badge ok" id="dCat"><span class="sym">check_circle</span>小型无人机</span>
             <span id="dCompOk" style="font:400 12.5px var(--mono);color:var(--ink-2)">依据《无人驾驶航空器飞行管理暂行条例》</span>
           </div>
         </div>
@@ -125,22 +125,23 @@
         <div class="panel-head"><span class="sym">bolt</span>功率–空速极曲线</div>
         <div class="panel-body">
           <div class="chart-box tall"><canvas id="perfPolar"></canvas></div>
-          <div class="chart-note">最小功率点附近为最优滞空区；巡航点取 19 m/s（≈1.8 倍失速速度），兼顾效率与抗风裕度。</div>
+          <div class="chart-note">极曲线扫描自 1.1 倍失速速度起（失速以下不适用线性模型）。巡航点取 19 m/s（≈1.75 倍失速速度），主动让渡部分能量效率，换取抗风裕度与外业排班效率。</div>
         </div>
       </div>
       <div class="panel rv">
         <div class="panel-head"><span class="sym">merge_type</span>任务载荷–航时边界</div>
         <div class="panel-body">
           <div class="chart-box tall"><canvas id="perfLoad"></canvas></div>
-          <div class="chart-note">载荷每增加 100 g，理论航时约减 1 min——这是载荷选型与作业半径折中的定量依据（曲线由平台实时复算）。</div>
+          <div class="chart-note">载荷每增加 100 g，理论航时约减 0.5 min——这是载荷选型与作业半径折中的定量依据（曲线由平台实时复算）。</div>
         </div>
       </div>
     </div>
     <div class="grid-2" style="margin-top:22px">
       <div class="panel rv">
-        <div class="panel-head"><span class="sym">history</span>能量瀑布（单架次预算）</div>
+        <div class="panel-head"><span class="sym">history</span>能量瀑布（单架次理论剖面）</div>
         <div class="panel-body">
           <div class="chart-box"><canvas id="perfWater"></canvas></div>
+          <div class="chart-note">理论剖面 = 可用能量全部投入任务（理论航时 93 min）。实际任务规划按 15% 返航与安全储备折减，任务航时约 79 min。</div>
         </div>
       </div>
       <div class="panel rv">
@@ -155,7 +156,7 @@
             <div class="read"><b><span id="pRange">—</span></b><small>对地航程 (km)</small></div>
             <div class="read"><b><span id="pGround">—</span></b><small>对地速度 (m/s)</small></div>
           </div>
-          <div class="chart-note">巡检作业按 3–4 级风（3.3–5.4 m/s）设计边界：航时下降 &lt; 8%，仍在单架次任务包线内；6 级风以上自动返航（飞控限值）。</div>
+          <div class="chart-note">顶风不改变需用功率（航时不变），只损失地速：3–4 级风顶风对地航程下降约 18%–28%，仍在单架次任务包线内；6 级风以上自动返航（飞控限值）。</div>
         </div>
       </div>
     </div>
@@ -196,7 +197,10 @@
             <div class="read"><b><span id="sTime">—</span> min</b><small>预计任务时间</small></div>
             <div class="read"><b><span id="sSwath">—</span></b><small>旁向幅宽 / 行距 <span id="sGap"></span></small></div>
           </div>
-          <div style="margin-top:14px"><span class="badge ok" id="sSortie"><span class="sym">check_circle</span>单架次可完成</span></div>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+            <span class="badge ok" id="sSortie"><span class="sym">check_circle</span>单架次可完成</span>
+            <span class="badge warn" id="sAltWarn" style="display:none"><span class="sym">bolt</span>航高超出 120 m 适飞真高，实飞需申请空域</span>
+          </div>
         </div>
         <div><canvas id="surveyCv" class="mission-cv"></canvas><div class="chart-note">牛耕式覆盖航线（渐变线），蓝点为等时距曝光点；半 U 型转弯按 45 m 过渡半径修正航线长度。</div></div>
       </div>

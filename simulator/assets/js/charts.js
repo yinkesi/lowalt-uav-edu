@@ -5,6 +5,15 @@
 "use strict";
 
 const CHART = (() => {
+  // roundRect 兼容兜底（Chrome 99+ / Firefox 112+ / Safari 16+ 原生支持）
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r); this.closePath(); return this;
+    };
+  }
   const CSS = getComputedStyle(document.documentElement);
   const C = {
     blue: CSS.getPropertyValue("--blue").trim() || "#4285f4",
@@ -145,7 +154,7 @@ const CHART = (() => {
     g.fillStyle = C.ink; g.textAlign = "center"; g.textBaseline = "bottom";
     g.fillText("余 " + rem.toFixed(0) + " Wh", xr + colW / 2, Math.max(12, Y(rem) - 4));
     g.font = '10px "JetBrains Mono", monospace'; g.fillStyle = C.ink3; g.textBaseline = "top";
-    g.fillText("安全余量", xr + colW / 2, box.y0 + 8);
+    g.fillText("理论剩余", xr + colW / 2, box.y0 + 8);
     // 可用总能量基线
     g.strokeStyle = C.pink; g.setLineDash([5, 4]); g.beginPath();
     g.moveTo(box.x0, Y(availWh)); g.lineTo(box.x1, Y(availWh)); g.stroke(); g.setLineDash([]);
