@@ -172,8 +172,8 @@ const ENG = (() => {
   }
 
   /* ---------- WFEA：风场感知分段自适应巡航 ----------
-   * 传统策略全程定速；本模型按风场分段求最优真空速：
-   *   逆风段适当提速（缩短高阻暴露时间）、顺风段适当降速（吃功率三次方红利）。
+   * 相对无风最省能量工作点，逆风段被风场推向更高真空速、顺风段可更低——
+   * 两段各自取能量最优点，得到能量-时间 Pareto 上的能量优先工作点。
    * 段能耗 E(d,w) = min_v  P_elec(v)·d / (v − w)，w 为航向上风速投影（正=顶风）。
    * 返回 { vAir, energyWh, tMin }。 */
   function segmentEnergy(cfg, mtow, distM, wAlong) {
@@ -186,6 +186,10 @@ const ENG = (() => {
       const tS = distM / vg;
       const E = cruise(cfg, mtow, v).Pelec * tS / 3600;
       if (!best || E < best.E) best = { vAir: v, E, tMin: tS / 60 };
+    }
+    if (!best) {                                  // 极端侧风/超界防御：取扫描上限
+      const P = cruise(cfg, mtow, 28).Pelec;
+      best = { vAir: 28, E: P * distM / (28 - wAlong) / 3600, tMin: distM / (28 - wAlong) / 60 };
     }
     return best;
   }
@@ -211,5 +215,25 @@ const ENG = (() => {
     };
   }
 
-  return { DEFAULT, RHO, G, mass, vtol, cruise, polar, endurance, stall, survey, compliance, segmentEnergy, wfeaCompare };
+  /* ---------- 双机对飞协同调度（线性目标单程巡检） ----------
+   * A 机自西端、B 机自东端（车载投放）相向飞行，同时完工于相遇点 x。
+   * 同时完工条件 x/(v−w) = (L−x)/(v+w) ⇒ x = L·(v−w)/(2v)：
+   * 顶风越大，逆风飞行单机分配的航段越短，相遇点越靠近其出发端。
+   * 单程不返航的可行性由视觉引导车载精准降落（±10 cm）支撑。 */
+  function relaySim(cfg, mtow, L_km, wAlong) {
+    const v = cfg.vCruise;
+    const en = endurance(cfg, mtow);
+    const tSingleS = L_km * 1000 / Math.max(1, v - wAlong);   // s（米制距离 ÷ 真空速）
+    const xKm = L_km * (v - wAlong) / (2 * v);
+    const tDualS = L_km * 1000 / (2 * v);                      // 两机同时完工，墙钟与风无关
+    const eSingle = en.pCruise * tSingleS / 3600;              // 能量 = 定速功率 × 自身航时
+    const eEach = en.pCruise * tDualS / 3600;                  // 两机等时 ⇒ 能量精确减半
+    return {
+      single: { tMin: tSingleS / 60, energyWh: eSingle },
+      dual: { tMin: tDualS / 60, energyWhA: eEach, energyWhB: eEach, xKm },
+      L_km, wAlong,
+    };
+  }
+
+  return { DEFAULT, RHO, G, mass, vtol, cruise, polar, endurance, stall, survey, compliance, segmentEnergy, wfeaCompare, relaySim };
 })();

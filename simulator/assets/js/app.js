@@ -179,7 +179,7 @@
     let rzT = null;
     window.addEventListener("resize", () => {
       clearTimeout(rzT);
-      rzT = setTimeout(() => { renderDesign(); renderPerf(); renderSurvey(); }, 150);
+      rzT = setTimeout(() => { renderDesign(); renderPerf(); renderSurvey(); renderRelay(); MISSION.stopRelay(); renderRelayIdle(); }, 150);
     });
   }
 
@@ -215,7 +215,7 @@
     $("#wWfea").textContent = fmt(c.wfea.energyWh, 0);
     $("#wSave").textContent = fmt(c.savingPct, 1);
     $("#wVup").textContent = fmt(c.wfea.vUp, 1);
-    $("#wVdn").textContent = fmt(c.wfea.vDn ?? c.wfea.vDown, 1);
+    $("#wVdn").textContent = fmt(c.wfea.vDown, 1);
     $("#wWindV").textContent = wfeaWind.toFixed(0) + " m/s 顶风（沿航线轴向）";
     $("#wBaseT").textContent = fmt(c.base.tMin, 0);
     $("#wWfeaT").textContent = fmt(c.wfea.tMin, 0);
@@ -267,6 +267,8 @@
   }
 
   function runPatrol(phase) {
+    clearInterval(reportTimer);
+    MISSION.stopInspection();
     const btn = $("#patrolBtn");
     const feed = $("#eventFeed");
     const rep = $("#reportBox");
@@ -287,7 +289,7 @@
       },
       (found) => {
         btn.dataset.run = "0"; btn.textContent = "▶ 重新执行巡检";
-        const meta = { altM: SP.altM, v: SP.vGnd, wind: Math.round(wind) || 3.2, photos: 412, area: "某河段沿线 2.0 km² 示范区（演示数据）", phase };
+        const meta = { altM: SP.altM, v: SP.vGnd, wind: wind.toFixed(0), photos: 412, area: "某河段沿线 2.0 km² 示范区（演示数据）", phase };
         const txt = MISSION.report(found, meta);
         let i = 0;
         clearInterval(reportTimer);
@@ -296,6 +298,65 @@
           if (i >= txt.length) clearInterval(reportTimer);
         }, 12);
       }, phase);
+  }
+
+  /* ============ 任务舱 C：双机对飞协同 ============ */
+  function renderRelay() {
+    const L = +$("#relayLen").value;
+    const w = +$("#relayWind").value;
+    const m = ENG.mass(CFG);
+    const c = ENG.relaySim(CFG, m.mtow, L, w);
+    $("#rLenV").textContent = L.toFixed(1) + " km";
+    $("#rWindV").textContent = w + " m/s 顶风";
+    $("#rST").textContent = fmt(c.single.tMin, 1);
+    $("#rDT").textContent = fmt(c.dual.tMin, 1);
+    $("#rSE").textContent = fmt(c.single.energyWh, 0);
+    $("#rDE").textContent = fmt(Math.max(c.dual.energyWhA, c.dual.energyWhB), 0);
+    $("#rSaveT").textContent = fmt((1 - c.dual.tMin / c.single.tMin) * 100, 1);
+    $("#rX").textContent = fmt(c.dual.xKm, 2);
+  }
+
+  function bindRelay() {
+    $("#relayLen").addEventListener("input", () => { renderRelay(); MISSION.stopRelay(); renderRelayIdle(); });
+    $("#relayWind").addEventListener("input", () => { renderRelay(); MISSION.stopRelay(); renderRelayIdle(); });
+    $("#relayBtn").addEventListener("click", () => {
+      const L = +$("#relayLen").value, w = +$("#relayWind").value;
+      MISSION.stopRelay();
+      MISSION.startRelay($("#relayCv"), CFG, L, w, () => renderRelayIdle());
+    });
+    renderRelay();
+    renderRelayIdle();
+  }
+
+  function renderRelayIdle() {
+    // 静态预览：直接绘制 t=0 状态两帧即可（由 startRelay 单帧渲染逻辑覆盖）
+    const L = +$("#relayLen").value, w = +$("#relayWind").value;
+    const cv = $("#relayCv");
+    const dpr = window.devicePixelRatio || 1;
+    const cw = cv.clientWidth, ch = cv.clientHeight;
+    if (cv.width !== Math.round(cw * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr); }
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, cw, ch);
+    g.fillStyle = "rgba(248,249,251,.92)"; g.fillRect(0, 0, cw, ch);
+    g.strokeStyle = "rgba(33,34,38,.06)";
+    for (let x = 0; x < cw; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, ch); g.stroke(); }
+    for (let y = 0; y < ch; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(cw, y); g.stroke(); }
+    const m0 = ENG.relaySim(CFG, ENG.mass(CFG).mtow, L, w);
+    const mg = 70, y0 = ch * 0.42, span = cw - 2 * mg;
+    g.strokeStyle = "rgba(47,111,143,.5)"; g.lineWidth = 14; g.lineCap = "round";
+    g.beginPath(); g.moveTo(mg, y0); g.lineTo(cw - mg, y0); g.stroke(); g.lineCap = "butt";
+    const xm = mg + m0.dual.xKm * (span / m0.L_km);
+    g.strokeStyle = "#9b72cb"; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(xm, y0 - 46); g.lineTo(xm, y0 + 22); g.stroke();
+    g.fillStyle = "#9b72cb"; g.font = '10px "JetBrains Mono", monospace'; g.textAlign = "center";
+    g.fillText("相遇点 " + m0.dual.xKm.toFixed(2) + " km", xm, y0 - 54);
+    g.fillStyle = "#5d6270"; g.textAlign = "left";
+    g.fillText("HOME_A（车载投放）", mg - 40, y0 + 48);
+    g.textAlign = "right";
+    g.fillText("HOME_B（车载投放）", cw - mg + 40, y0 + 48);
+    g.textAlign = "left"; g.textBaseline = "top";
+    g.fillText("点上方按钮执行双机对飞协同动画", 14, 12);
   }
 
   function bindPatrol() {
@@ -317,7 +378,7 @@
       const alt = +$("#safeAlt").value;
       const zone = $("#safeZone").value;
       const list = cp.items.slice();
-      if (alt > 120) list.unshift({ t: "作业真高 " + alt + " m > 120 m：超出微型/轻型适飞上限，须提前申请空域并获批后方可实施", ok: false });
+      if (alt > 120) list.unshift({ t: "作业真高 " + alt + " m > 120 m：超出 120 m 适飞真高上限（条例第 19 条，微型/轻型/小型统一适用），须提前申请空域并获批后方可实施", ok: false });
       if (zone === "airport") list.unshift({ t: "作业区位于机场净空保护区附近：须向民航及属地公安报批，纳入管制空域计划", ok: false });
       if (zone === "urban") list.push({ t: "人口密集区上空：建议投保第三者责任险并设立应急降落区", ok: true });
       const ul = $("#safeList");
@@ -349,6 +410,7 @@
     bindSurvey();
     bindWfea();
     bindPatrol();
+    bindRelay();
     bindSafety();
     bindNav();
     // 重算触发：面板进入视口时再画一次，防止初始化时画布宽度为 0

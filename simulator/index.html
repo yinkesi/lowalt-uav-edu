@@ -217,7 +217,7 @@
                 <div class="read"><b>顺 <span id="wVdn">—</span> m/s</b><small>顺风段最优真空速</small></div>
                 <div class="read"><b><span id="wBaseT">—</span> → <span id="wWfeaT">—</span> min</b><small>任务时间（Pareto 代价）</small></div>
               </div>
-              <div class="chart-note">这是能量–时间的 Pareto 权衡，不是"飞慢省电"：常态化巡检（时间富余）选能量优先工作点，能耗显著下降；应急保障选时间优先点（定速）。任务类型决定工作点选择——这就是"按任务自适应"的含义。目标函数 E(d,w) = min<sub>v</sub> P(v)·d/(v−w)，扫描自 1.15 倍失速速度，逐段数值求解。详见《设计方案》§3.3/§8。</div>
+              <div class="chart-note">这是能量–时间的 Pareto 权衡，不是"飞慢省电"：常态化巡检（时间富余）选能量优先工作点，能耗显著下降；应急保障选时间优先点（定速）。任务类型决定工作点选择——这就是"按任务自适应"的含义。相对无风最省能量工作点，逆风段被风场推向更高真空速、顺风段更低。目标函数 E(d,w) = min<sub>v</sub> P(v)·d/(v−w)，扫描自 1.15 倍失速速度，逐段数值求解。详见《设计方案》§3.4/§8。</div>
             </div>
           </div>
         </div>
@@ -237,12 +237,46 @@
               <button class="btn btn-sec" id="patrolBtn2"><span class="sym">history</span>第 2 期 · 两期对比巡检</button>
               <span class="badge" id="phaseTag" style="background:var(--card-tint);color:var(--ink-2)">第 1 期（建立底图）</span>
             </div>
-            <div class="chart-note" style="margin-top:8px">紫色虚线为巡检航线 · 圆内为机载识别视场。第 1 期建立底图，第 2 期与第 1 期事件自动对比：新增违建红标推送、逾期未改标记、已整改销号——变位检测思想从遥感移植到巡检数据链。</div>
+            <div class="chart-note" style="margin-top:8px">紫色虚线为巡检航线 · 圆内为机载识别视场。第 1 期建立底图，第 2 期与第 1 期事件自动对比：新增违建红标推送、逾期未改标记、已整改销号——变化检测思想从遥感移植到巡检数据链。</div>
           </div>
           <div>
             <div class="panel-head" style="border:1px solid var(--hairline-soft);border-radius:12px 12px 0 0"><span class="sym">forum</span>机载识别事件流（GeoJSON 事件包）</div>
             <ul class="feed" id="eventFeed" style="border:1px solid var(--hairline-soft);border-top:0;border-radius:0 0 12px 12px;padding:12px;min-height:120px"></ul>
             <div class="report" id="reportBox" style="margin-top:14px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- C 双机对飞协同 -->
+    <div class="panel rv" style="margin-top:22px">
+      <div class="panel-head"><span class="sym">device_hub</span>任务 C · 双机对飞协同调度（线性目标单程巡检 · 创新③）</div>
+      <div class="panel-body">
+        <div class="grid-2">
+          <div>
+            <canvas id="relayCv" class="mission-cv" style="height:300px"></canvas>
+            <div style="margin-top:12px">
+              <button class="btn btn-pri" id="relayBtn">▶ 执行双机对飞协同</button>
+            </div>
+            <div class="chart-note" style="margin-top:10px">相遇点按风场感知调度：x = L·(v−w)/(2v)。顶风越大，逆风飞行单机分配的航段越短，相遇点越靠近其出发端，两机同时完工。单程不返航规划由视觉引导车载精准降落（±10 cm，创新⑤）支撑——设计目标，样机阶段验证；创新点之间互为闭环。</div>
+          </div>
+          <div>
+            <div class="ctl">
+              <label>巡检目标长度 <b id="rLenV">4.0 km</b></label>
+              <input type="range" id="relayLen" min="2" max="6" step="0.5" value="4">
+            </div>
+            <div class="ctl">
+              <label>沿目标轴向风速 <b id="rWindV">5 m/s 顶风</b></label>
+              <input type="range" id="relayWind" min="0" max="8" step="1" value="5">
+            </div>
+            <div class="reads" style="grid-template-columns:repeat(2,1fr)">
+              <div class="read"><b><span id="rST">—</span> min</b><small>单机墙钟时间</small></div>
+              <div class="read hero-read"><b><span id="rDT">—</span> min</b><small>双机协同墙钟时间</small></div>
+              <div class="read"><b><span id="rSE">—</span> Wh</b><small>单机能量需求</small></div>
+              <div class="read"><b>各 <span id="rDE">—</span> Wh</b><small>双机单机需求（精确减半，定速近似）</small></div>
+              <div class="read"><b>− <span id="rSaveT">—</span> %</b><small>墙钟时间缩短</small></div>
+              <div class="read"><b><span id="rX">—</span> km</b><small>风场感知相遇点</small></div>
+            </div>
+            <div class="chart-note">评审要点原文包含"创新多机协同作业模式"：本模块给出可复现的调度算法与对比数据。双机各飞半程，单机能量需求近乎减半，配合 §3.5 能量预算可支撑更长链巡检不换电。</div>
           </div>
         </div>
       </div>
@@ -300,16 +334,18 @@
   <div class="shell">
     <div class="sec-head rv">
       <div>
-        <div class="k">Innovation · 四项核心创新</div>
+        <div class="k">Innovation · 五项核心创新</div>
         <h2>从"用了 AI"到<br>"解决了真问题"</h2>
       </div>
-      <p>对标赛道"创新优化性"评审要点：每项创新都有对应的作业环节、量化指标与平台内可复现的对比实验——创新①②为自研算法/方法，③④为工程优化组合。</p>
+      <p>对标赛道"创新优化性"评审要点：每项创新都有对应的作业环节、量化指标与平台内可复现的对比实验——创新①②为自研算法/方法，③④⑤为工程优化组合。</p>
     </div>
     <div class="steps">
-      <div class="step rv"><div class="ic"><span class="sym">psychology</span></div><h3>WFEA 能量–时间 Pareto 自适应巡航</h3><p>自研分段最优真空速算法：按风场对每段航路求解 E(d,w)=min<sub>v</sub> P(v)·d/(v−w)。常态化巡检选能量优先点（顶风 5 m/s 实测能耗 −27.7%），应急任务选时间优先点——按任务类型自适应切换工作点，平台内可复现 A/B 对比。</p><span class="tag">Innovation 01 · WFEA 自研算法</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">psychology</span></div><h3>WFEA 能量–时间 Pareto 自适应巡航</h3><p>自研分段最优真空速算法：按风场对每段航路求解 E(d,w)=min<sub>v</sub> P(v)·d/(v−w)。常态化巡检选能量优先点（顶风 5 m/s 平台 A/B 仿真能耗 −27.7%），应急任务选时间优先点——按任务类型自适应切换工作点，平台内可复现 A/B 对比。</p><span class="tag">Innovation 01 · WFEA 自研算法</span></div>
       <div class="step rv"><div class="ic"><span class="sym">manage_search</span></div><h3>两期对比变化发现</h3><p>把遥感变化检测思想移植到巡检数据链：第 1 期建立事件底图，第 2 期自动对比，新增违建即查即标、逾期未改自动挂账、已整改自动销号——从"拍照记录"升级为"变化发现"，直击新增违建巡查业务痛点。</p><span class="tag">Innovation 02 · Change Detection</span></div>
-      <div class="step rv"><div class="ic"><span class="sym">smart_toy</span></div><h3>机载边缘 AI 识别与坐标自标定</h3><p>6 TOPS NPU 端侧部署轻量化检测模型，即拍即识并按共线方程解算目标 WGS84 坐标，事件包免回传原始视频、链路带宽节省约 90%，弱网偏远区域可用。</p><span class="tag">Innovation 03 · Edge AI</span></div>
-      <div class="step rv"><div class="ic"><span class="sym">rocket_launch</span></div><h3>精准降落与大模型成报</h3><p>ArUco 地标 + RTK 双冗余进近，着陆 CEP ±10 cm，支持车载动态起降；识别事件流由大模型按行业模板 3 min 生成标准化巡检报告，人工复核后归档。</p><span class="tag">Innovation 04 · Landing + LLM</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">smart_toy</span></div><h3>机载边缘 AI 识别与坐标自标定</h3><p>6 TOPS NPU 端侧部署轻量化检测模型，即拍即识并按共线方程解算目标 WGS84 坐标，事件包免回传原始视频、链路带宽节省约 90%，弱网偏远区域可用。</p><span class="tag">Innovation 04 · Edge AI</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">smart_toy</span></div><h3>机载边缘 AI 识别与坐标自标定</h3><p>6 TOPS NPU 端侧部署轻量化检测模型，即拍即识并按共线方程解算目标 WGS84 坐标，事件包免回传原始视频、链路带宽节省约 90%，弱网偏远区域可用。</p><span class="tag">Innovation 04 · Edge AI</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">device_hub</span></div><h3>双机对飞协同调度</h3><p>线性目标（河道/管网）单程巡检：相遇点按风场感知解算 x = L·(v−w)/(2v)，两机同时完工。4 km 河道顶风 8 m/s 平台仿真墙钟时间缩短 71%；单程不返航由车载精准降落支撑（设计目标），创新点互为闭环。</p><span class="tag">Innovation 03 · 多机协同调度</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">rocket_launch</span></div><h3>精准降落与大模型成报</h3><p>ArUco 地标 + RTK 双冗余进近，着陆 CEP ±10 cm，支持车载动态起降；识别事件流由大模型按行业模板 3 min 生成标准化巡检报告，人工复核后归档。</p><span class="tag">Innovation 05 · Landing + LLM</span></div>
     </div>
   </div>
 </section>
@@ -333,7 +369,7 @@
             <li><span class="sym">check_circle</span>低空领域作品介绍文档（PDF，含名称/关键词/概述/痛点/创新/落地/成效）</li>
             <li><span class="sym">check_circle</span>演示视频（MP4 ≤ 10 min ≤ 500 MB，2+6+2 分段）</li>
             <li><span class="sym">check_circle</span>佐证材料（选报 ≤ 100 MB）：设计方案 + 本平台录屏 + 计算书</li>
-            <li><span class="sym">check_circle</span>AI 生成内容已人工审核（合规总则第 1 条要求）</li>
+            <li><span class="sym">check_circle</span>AI 生成内容人工审核：正式提交前由团队逐节完成（合规总则第 1 条）</li>
             <li><span class="sym">check_circle</span>开发平台 / 工具 / AI 模型来源已如实标注（第十一条第 2 款）</li>
           </ul>
         </div>

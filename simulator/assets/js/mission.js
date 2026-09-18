@@ -145,7 +145,8 @@ const MISSION = (() => {
     } else {
       // 第二期：两期对比。上期 8 处中 6 处已整改销号；2 处逾期未改；1 处新增疑似违建
       const spots = [[420, 96, "keep"], [520, 300, "keep"], [350, 240, "new"]];
-      spots.forEach((pt, i) => targets.push({ x: pt[0], y: pt[1], kind: KINDS[i === 2 ? 1 : 1], conf: 0.86 + rnd() * 0.12, isNew: pt[2] === "new" }));
+      // 保留项与新增项均为违法建筑，须与第 1 期对应目标同类
+      spots.forEach((pt) => targets.push({ x: pt[0], y: pt[1], kind: KINDS[1], conf: 0.86 + rnd() * 0.12, isNew: pt[2] === "new" }));
     }
     return { blocks, targets };
   }
@@ -275,6 +276,84 @@ const MISSION = (() => {
     g.fillText("巡检进度 " + Math.min(100, st.t * 100).toFixed(0) + "%   ·   已识别 " + st.found.length + " 处", 14, 12);
   }
 
+  /* ============================================================
+   * C. 双机对飞协同仿真（线性目标单程巡检）
+   * ============================================================ */
+  let relayState = null;
+
+  function startRelay(cv, cfg, L_km, wAlong, onDone) {
+    const { g, w, h } = prep(cv);
+    const sim = ENG.relaySim(cfg, ENG.mass(cfg).mtow, L_km, wAlong);
+    relayState = { cv, w, h, t: 0, sim, raf: null, last: performance.now(), onDone };
+    const durS = Math.max(2, sim.dual.tMin) * 0.35;   // 动画时长（压缩）
+    const stepFn = (now) => {
+      if (!relayState) return;
+      const dt = Math.min(50, now - relayState.last) / 1000;
+      relayState.last = now;
+      relayState.t += dt / durS;
+      renderRelay();
+      if (relayState.t >= 1) { const d = relayState.onDone, st = relayState.sim; stopRelay(); d && d(st); return; }
+      relayState.raf = requestAnimationFrame(stepFn);
+    };
+    relayState.raf = requestAnimationFrame(stepFn);
+  }
+
+  function stopRelay() {
+    if (relayState && relayState.raf) cancelAnimationFrame(relayState.raf);
+    relayState = null;
+  }
+
+  function renderRelay() {
+    const st = relayState; if (!st) return;
+    const { g, w, h } = prep(st.cv);
+    g.fillStyle = "rgba(248,249,251,.92)"; g.fillRect(0, 0, w, h);
+    grid(g, w, h);
+    const sim = st.sim;
+    const m = 70, y = h * 0.42, span = w - 2 * m;
+    const pxPerKm = span / sim.L_km;
+    const xMeet = m + sim.dual.xKm * pxPerKm;
+    // 河道
+    g.strokeStyle = "rgba(47,111,143,.5)"; g.lineWidth = 14; g.lineCap = "round";
+    g.beginPath(); g.moveTo(m, y); g.lineTo(w - m, y); g.stroke(); g.lineCap = "butt";
+    g.fillStyle = "rgba(47,111,143,.6)"; g.font = MONO; g.textAlign = "center";
+    g.fillText("河道 " + sim.L_km.toFixed(1) + " km（线性巡检目标）", w / 2, y + 30);
+    // 相遇点旗标
+    g.strokeStyle = COL.violet; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(xMeet, y - 46); g.lineTo(xMeet, y + 22); g.stroke();
+    g.fillStyle = COL.violet;
+    g.beginPath(); g.moveTo(xMeet, y - 46); g.lineTo(xMeet + 26, y - 40); g.lineTo(xMeet, y - 34); g.fill();
+    g.fillText("相遇点 " + sim.dual.xKm.toFixed(2) + " km", xMeet, y - 54);
+    // 起降点
+    g.fillStyle = COL.ink; g.textAlign = "left";
+    g.fillText("HOME_A（车载投放）", m - 40, y + 48);
+    g.textAlign = "right";
+    g.fillText("HOME_B（车载投放）", w - m + 40, y + 48);
+    // 双机位置（同时完工：t 归一化墙钟）
+    const t = Math.min(1, st.t);
+    const ax = m + t * (xMeet - m);
+    const bx = (w - m) - t * (w - m - xMeet);
+    [[ax, COL.blue, "A"], [bx, COL.pink, "B"]].forEach(([px, c, tag]) => {
+      g.strokeStyle = c; g.lineWidth = 2;
+      [[-9, -7], [9, -7], [-9, 7], [9, 7]].forEach(a => {
+        g.beginPath(); g.moveTo(px, y - 12); g.lineTo(px + a[0], y - 12 + a[1]); g.stroke();
+        g.beginPath(); g.arc(px + a[0], y - 12 + a[1], 3, 0, 7); g.stroke();
+      });
+      g.beginPath(); g.roundRect(px - 5, y - 16, 10, 9, 3); g.fillStyle = c; g.fill();
+      g.fillStyle = c; g.font = MONO; g.textAlign = "center";
+      g.fillText("LY-100-" + tag, px, y - 34);
+    });
+    // 已覆盖航段
+    g.lineWidth = 5;
+    g.strokeStyle = "rgba(66,133,244,.85)";
+    g.beginPath(); g.moveTo(m, y); g.lineTo(ax, y); g.stroke();
+    g.strokeStyle = "rgba(217,101,112,.85)";
+    g.beginPath(); g.moveTo(w - m, y); g.lineTo(bx, y); g.stroke();
+    g.lineWidth = 1;
+    // 进度
+    g.fillStyle = COL.ink2; g.font = MONO; g.textAlign = "left"; g.textBaseline = "top";
+    g.fillText("协同巡检进度 " + (t * 100).toFixed(0) + "%   ·   风场感知相遇点调度", 14, 12);
+  }
+
   /* 生成标准化巡检报告文本（模拟机载数据 → 地面站大模型成报）。
    * 坐标换算：目标携带米制偏移 mx/my（设计稿 2 m/px，与窗口宽度无关），
    * 纬度 1° ≈ 111 320 m，经度 1° ≈ 111 320 × cos(纬度) m。 */
@@ -290,7 +369,7 @@ const MISSION = (() => {
     const lines = [];
     lines.push("低空巡检标准化工作报告");
     lines.push("任务编号：LY100-PATROL-" + ts.replace(/[-: ]/g, "").slice(0, 12));
-    lines.push("巡检时间：" + ts + "   机型：翎雁 LY-100（轻型）   航高：" + meta.altM + " m（真高）");
+    lines.push("巡检时间：" + ts + "   机型：翎雁 LY-100（小型）   航高：" + meta.altM + " m（真高）");
     lines.push("作业空域：适飞空域·已开电子围栏   飞手：持证（CAAC）   风速：" + meta.wind + " m/s");
     lines.push("──────────────────────────────");
     lines.push("一、任务概况");
@@ -317,5 +396,5 @@ const MISSION = (() => {
     return lines.join("\n");
   }
 
-  return { drawSurvey, startInspection, stopInspection, report, KINDS };
+  return { drawSurvey, startInspection, stopInspection, report, KINDS, startRelay, stopRelay };
 })();
