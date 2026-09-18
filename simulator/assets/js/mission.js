@@ -129,7 +129,7 @@ const MISSION = (() => {
     { key: "debris",    name: "建筑垃圾堆积", color: "#e2a33c" },
   ];
 
-  function genScene(seed = 7) {
+  function genScene(seed = 7, phase = 1) {
     // 程序化城市场景：街区块 + 河道 + 目标点（坐标按 720×380 设计稿归一化）
     let s = seed;
     const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
@@ -139,8 +139,14 @@ const MISSION = (() => {
       blocks.push({ x: 40 + bx * 116 + rnd() * 10, y: 36 + by * 106 + rnd() * 8, w: 78 + rnd() * 26, h: 62 + rnd() * 30 });
     }
     const targets = [];
-    const spots = [[180, 150], [420, 96], [600, 210], [260, 320], [520, 300], [680, 130], [120, 250], [470, 180]];
-    spots.forEach((pt, i) => targets.push({ x: pt[0], y: pt[1], kind: KINDS[i % 3], conf: 0.82 + rnd() * 0.16 }));
+    if (phase === 1) {
+      const spots = [[180, 150], [420, 96], [600, 210], [260, 320], [520, 300], [680, 130], [120, 250], [470, 180]];
+      spots.forEach((pt, i) => targets.push({ x: pt[0], y: pt[1], kind: KINDS[i % 3], conf: 0.82 + rnd() * 0.16 }));
+    } else {
+      // 第二期：两期对比。上期 8 处中 6 处已整改销号；2 处逾期未改；1 处新增疑似违建
+      const spots = [[420, 96, "keep"], [520, 300, "keep"], [350, 240, "new"]];
+      spots.forEach((pt, i) => targets.push({ x: pt[0], y: pt[1], kind: KINDS[i === 2 ? 1 : 1], conf: 0.86 + rnd() * 0.12, isNew: pt[2] === "new" }));
+    }
     return { blocks, targets };
   }
 
@@ -179,11 +185,11 @@ const MISSION = (() => {
 
   let simState = null;
 
-  function startInspection(cv, onEvent, onDone) {
+  function startInspection(cv, onEvent, onDone, phase = 1) {
     const { w, h } = prep(cv);
     buildPath(w, h);
-    const sc = genScene();
-    simState = { cv, w, h, t: 0,
+    const sc = genScene(7, phase);
+    simState = { cv, w, h, t: 0, phase,
       blocks: mapScene(sc.blocks, w, h),
       targets: mapScene(sc.targets, w, h),
       found: [], onEvent, onDone, raf: null, last: performance.now() };
@@ -244,11 +250,11 @@ const MISSION = (() => {
       const ided = st.found.includes(t);
       if (ided) {
         g.fillStyle = t.color;
-        g.strokeStyle = t.color; g.lineWidth = 1.6;
+        g.strokeStyle = t.color; g.lineWidth = t.isNew ? 2.4 : 1.6;
         g.strokeRect(t.x - 13, t.y - 13, 26, 26);
         [[-13, -13], [13, -13], [-13, 13], [13, 13]].forEach(c => { g.beginPath(); g.moveTo(t.x + c[0], t.y + c[1] * 0.4); g.lineTo(t.x + c[0], t.y + c[1]); g.lineTo(t.x + c[0] * 0.4, t.y + c[1]); g.stroke(); });
         g.font = MONO; g.textAlign = "left"; g.textBaseline = "bottom";
-        g.fillText(t.kind.name + " " + (t.conf * 100).toFixed(1) + "%", t.x + 16, t.y - 10);
+        g.fillText((t.isNew ? "【新增】" : "") + t.kind.name + " " + (t.conf * 100).toFixed(1) + "%", t.x + 16, t.y - 10);
       } else if (seen) {
         // 视场内尚未确认的目标：虚线提示
         g.strokeStyle = "rgba(33,34,38,.35)"; g.setLineDash([3, 3]); g.lineWidth = 1;
@@ -294,11 +300,19 @@ const MISSION = (() => {
     const idx = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧"];
     found.forEach((t, i) => {
       const lon = (lon0 + t.mx / M_PER_DEG_LON).toFixed(6), lat = (lat0 + t.my / M_PER_DEG_LAT).toFixed(6);
-      lines.push(idx[i] + " " + t.kind.name + "（置信度 " + (t.conf * 100).toFixed(1) + "%）· WGS84 " + lon + "E " + lat + "N · 已留证（可见光+位置包）");
+      lines.push(idx[i] + " " + (t.isNew ? "【新增】" : "") + t.kind.name + "（置信度 " + (t.conf * 100).toFixed(1) + "%）· WGS84 " + lon + "E " + lat + "N · 已留证（可见光+位置包）");
     });
     if (!found.length) lines.push("（无）");
     lines.push("三、统计：疑似污染源 " + cnt.pollution + " 处；疑似违法建筑 " + cnt.illegal + " 处；建筑垃圾堆积 " + cnt.debris + " 处。");
-    lines.push("四、处置建议：请按网格化属地管理流程派单核查，48 小时内复核销号；复核影像可调用本任务原始数据包。");
+    if (meta.phase === 2) {
+      const nNew = found.filter(t => t.isNew).length;
+      const nKeep = found.length - nNew;
+      lines.push("三′、两期对比（本期为第 2 期）：上期识别 8 处；已整改销号 " + (8 - nKeep) + " 处；逾期未改 " + nKeep + " 处；");
+      lines.push("本期通过两期事件对比自动发现新增疑似违法建筑 " + nNew + " 处（问题清单红标项），已推送属地网格。");
+      lines.push("四、处置建议：新增目标按\"即查即拆\"流程 48 小时内现场核定；逾期未改目标启动执法程序并同步街镇。");
+    } else {
+      lines.push("四、处置建议：请按网格化属地管理流程派单核查，48 小时内复核销号；复核影像可调用本任务原始数据包。");
+    }
     lines.push("五、数据说明：识别结果为 AI 辅助初筛，须经人工复核后方可作为执法依据（人机协同审核制度）。");
     return lines.join("\n");
   }

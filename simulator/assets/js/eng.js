@@ -171,5 +171,45 @@ const ENG = (() => {
     };
   }
 
-  return { DEFAULT, RHO, G, mass, vtol, cruise, polar, endurance, stall, survey, compliance };
+  /* ---------- WFEA：风场感知分段自适应巡航 ----------
+   * 传统策略全程定速；本模型按风场分段求最优真空速：
+   *   逆风段适当提速（缩短高阻暴露时间）、顺风段适当降速（吃功率三次方红利）。
+   * 段能耗 E(d,w) = min_v  P_elec(v)·d / (v − w)，w 为航向上风速投影（正=顶风）。
+   * 返回 { vAir, energyWh, tMin }。 */
+  function segmentEnergy(cfg, mtow, distM, wAlong) {
+    const m = mass(cfg);
+    const vS = stall(cfg, mtow).v * 1.15;
+    let best = null;
+    for (let v = vS; v <= 28; v += 0.25) {
+      const vg = v - wAlong;
+      if (vg < 2) continue;                       // 地速过低，不进入可行域
+      const tS = distM / vg;
+      const E = cruise(cfg, mtow, v).Pelec * tS / 3600;
+      if (!best || E < best.E) best = { vAir: v, E, tMin: tS / 60 };
+    }
+    return best;
+  }
+
+  /* A/B 对比：航线总长 pathKm，风沿航线轴向分量 wAlong（|w|，往返各半）。
+   * base：全程定速 vCruise；wfea：分段最优。返回对比结果。 */
+  function wfeaCompare(cfg, mtow, pathKm, wAlong) {
+    const halfM = pathKm * 500;                   // 往返各半
+    // 基线：定速
+    const pBase = cruise(cfg, mtow, cfg.vCruise).Pelec;
+    const tUpBase = halfM / Math.max(1, cfg.vCruise - wAlong);
+    const tDnBase = halfM / (cfg.vCruise + wAlong);
+    const Ebase = pBase * (tUpBase + tDnBase) / 3600;
+    // WFEA：逆风段/顺风段各自取最优真空速
+    const up = segmentEnergy(cfg, mtow, halfM, wAlong);
+    const dn = segmentEnergy(cfg, mtow, halfM, -wAlong);
+    const Ewfea = up.E + dn.E;
+    return {
+      base: { energyWh: Ebase, tMin: (tUpBase + tDnBase) / 60, vAir: cfg.vCruise },
+      wfea: { energyWh: Ewfea, tMin: up.tMin + dn.tMin, vUp: up.vAir, vDown: dn.vAir },
+      savingPct: (1 - Ewfea / Ebase) * 100,
+      wAlong,
+    };
+  }
+
+  return { DEFAULT, RHO, G, mass, vtol, cruise, polar, endurance, stall, survey, compliance, segmentEnergy, wfeaCompare };
 })();

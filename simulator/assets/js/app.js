@@ -203,6 +203,27 @@
     $("#sAltWarn").style.display = SP.altM > 120 ? "" : "none";
     $("#sSwath").textContent = fmt(r.swathW, 1) + " m";
     $("#sGap").textContent = fmt(r.lineGap, 1) + " m";
+    renderWfea(r);
+  }
+
+  /* WFEA 风场感知分段自适应巡航：A/B 对比 */
+  let wfeaWind = 5;
+  function renderWfea(r) {
+    const m = ENG.mass(CFG);
+    const c = ENG.wfeaCompare(CFG, m.mtow, r.pathKm, wfeaWind);
+    $("#wBase").textContent = fmt(c.base.energyWh, 0);
+    $("#wWfea").textContent = fmt(c.wfea.energyWh, 0);
+    $("#wSave").textContent = fmt(c.savingPct, 1);
+    $("#wVup").textContent = fmt(c.wfea.vUp, 1);
+    $("#wVdn").textContent = fmt(c.wfea.vDn ?? c.wfea.vDown, 1);
+    $("#wWindV").textContent = wfeaWind.toFixed(0) + " m/s 顶风（沿航线轴向）";
+    $("#wBaseT").textContent = fmt(c.base.tMin, 0);
+    $("#wWfeaT").textContent = fmt(c.wfea.tMin, 0);
+  }
+
+  function bindWfea() {
+    const sl = $("#wfeaWind");
+    sl.addEventListener("input", () => { wfeaWind = +sl.value; renderSurvey(); });
   }
 
   function bindSurvey() {
@@ -235,46 +256,57 @@
     renderSurvey();
   }
 
-  /* ============ 任务舱 B：AI 巡检 ============ */
+  /* ============ 任务舱 B：AI 巡检（支持两期对比） ============ */
   let reportTimer = null;
-
-  function bindPatrol() {
-    const btn = $("#patrolBtn");
-    const feed = $("#eventFeed");
-    const rep = $("#reportBox");
-    btn.addEventListener("click", () => {
-      if (btn.dataset.run === "1") { MISSION.stopInspection(); resetPatrol(); return; }
-      btn.dataset.run = "1";
-      btn.textContent = "■ 停止任务";
-      feed.innerHTML = ""; rep.textContent = "";
-      MISSION.startInspection($("#patrolCv"),
-        (t, progress) => {
-          const li = document.createElement("li");
-          const M_LAT = 111320, M_LON = M_LAT * Math.cos(31.2829 * Math.PI / 180);
-          const lon = (121.5037 + t.mx / M_LON).toFixed(6);
-          const lat = (31.2829 + t.my / M_LAT).toFixed(6);
-          li.innerHTML = `<span class="dot" style="background:${t.kind.color}"></span><div><b>${t.kind.name}</b> 置信度 ${(t.conf * 100).toFixed(1)}%<small>WGS84 ${lon}E, ${lat}N · 已留证</small></div>`;
-          feed.prepend(li);
-        },
-        (found) => {
-          btn.dataset.run = "0"; btn.textContent = "▶ 重新执行巡检";
-          const m = ENG.mass(CFG);
-          const meta = { altM: SP.altM, v: SP.vGnd, wind: Math.round(wind) || 3.2, photos: 412, area: "某河段沿线 2.0 km² 示范区（演示数据）" };
-          const txt = MISSION.report(found, meta);
-          let i = 0;
-          clearInterval(reportTimer);
-          reportTimer = setInterval(() => {
-            rep.textContent = txt.slice(0, i += 3);
-            if (i >= txt.length) clearInterval(reportTimer);
-          }, 12);
-        });
-    });
-  }
+  let patrolPhase = 1;
 
   function resetPatrol() {
     const btn = $("#patrolBtn");
     btn.dataset.run = "0"; btn.textContent = "▶ 执行 AI 巡检任务";
     clearInterval(reportTimer);
+  }
+
+  function runPatrol(phase) {
+    const btn = $("#patrolBtn");
+    const feed = $("#eventFeed");
+    const rep = $("#reportBox");
+    patrolPhase = phase;
+    btn.dataset.run = "1";
+    btn.textContent = "■ 停止任务";
+    feed.innerHTML = ""; rep.textContent = "";
+    $("#phaseTag").textContent = phase === 2 ? "第 2 期（与第 1 期自动对比）" : "第 1 期（建立底图）";
+    MISSION.startInspection($("#patrolCv"),
+      (t) => {
+        const li = document.createElement("li");
+        const M_LAT = 111320, M_LON = M_LAT * Math.cos(31.2829 * Math.PI / 180);
+        const lon = (121.5037 + t.mx / M_LON).toFixed(6);
+        const lat = (31.2829 + t.my / M_LAT).toFixed(6);
+        const tag = t.isNew ? `<em style="color:var(--pink);font-style:normal">【新增】</em>` : (phase === 2 ? `【逾期未改】` : "");
+        li.innerHTML = `<span class="dot" style="background:${t.kind.color}"></span><div><b>${tag}${t.kind.name}</b> 置信度 ${(t.conf * 100).toFixed(1)}%<small>WGS84 ${lon}E, ${lat}N · 已留证</small></div>`;
+        feed.prepend(li);
+      },
+      (found) => {
+        btn.dataset.run = "0"; btn.textContent = "▶ 重新执行巡检";
+        const meta = { altM: SP.altM, v: SP.vGnd, wind: Math.round(wind) || 3.2, photos: 412, area: "某河段沿线 2.0 km² 示范区（演示数据）", phase };
+        const txt = MISSION.report(found, meta);
+        let i = 0;
+        clearInterval(reportTimer);
+        reportTimer = setInterval(() => {
+          rep.textContent = txt.slice(0, i += 3);
+          if (i >= txt.length) clearInterval(reportTimer);
+        }, 12);
+      }, phase);
+  }
+
+  function bindPatrol() {
+    $("#patrolBtn").addEventListener("click", () => {
+      if ($("#patrolBtn").dataset.run === "1") { MISSION.stopInspection(); resetPatrol(); return; }
+      runPatrol(1);
+    });
+    $("#patrolBtn2").addEventListener("click", () => {
+      if ($("#patrolBtn").dataset.run === "1") { MISSION.stopInspection(); resetPatrol(); return; }
+      runPatrol(2);
+    });
   }
 
   /* ============ 安全舱 ============ */
@@ -315,6 +347,7 @@
     renderDesign(); bindDesign();
     renderPerf(); bindPerf();
     bindSurvey();
+    bindWfea();
     bindPatrol();
     bindSafety();
     bindNav();
