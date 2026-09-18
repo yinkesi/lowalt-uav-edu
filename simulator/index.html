@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>翎雁 LY-100 · 低空智能巡检测绘飞行器一体化设计与任务仿真平台</title>
+<meta name="description" content="2026'AI+教育'创新应用技能大赛 · 大学生AI创新创业组 · 低空装备技术应用赛道 · 科目一低空装备技术创新赛参赛作品">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ================= 导航 ================= -->
+<header class="site-nav" id="top">
+  <div class="shell nav-inner">
+    <a class="brand" href="#top">
+      <span class="sig sym">rocket_launch</span>
+      <span>翎雁 LY-100<small>一体化设计与任务仿真平台</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#secDesign">01 设计舱</a>
+      <a href="#secPerf">02 性能舱</a>
+      <a href="#secMission">03 任务舱</a>
+      <a href="#secSafety">04 安全舱</a>
+      <a href="#secSubmit">05 申报材料</a>
+      <a class="nav-cta" href="#secDesign">进入平台</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle">MENU</button>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="shell hero-grid">
+    <div>
+      <span class="eyebrow">"AI+教育"创新应用技能大赛 · 大学生 AI 创新创业组 <b>低空装备技术应用赛道</b></span>
+      <h1 class="hero-title">把低空巡检与测绘<span class="l2 grad-text">装进五公斤</span></h1>
+      <p class="hero-sub">翎雁 LY-100 复合翼垂起低空智能飞行器——总体构型、动力匹配、任务载荷、轻量化结构、安全冗余五大模块一体化设计，配套全数字仿真验证平台。方案级参数可调，性能即刻复算。</p>
+      <div class="hero-actions">
+        <a class="btn btn-pri" href="#secDesign">开始交互设计 <span class="sym">arrow_forward</span></a>
+        <a class="btn btn-sec" href="#secMission"><span class="sym">play_circle</span> 观看任务仿真</a>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="showcase">
+        <div class="showcase-bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          LY-100 / GCS-LIVE · 实时遥测（仿真数据）
+        </div>
+        <canvas id="telemetry"></canvas>
+      </div>
+      <div class="chips chip-a"><span class="sym">bolt</span>机载 AI 6 TOPS</div>
+      <div class="chips chip-b"><span class="sym">shield</span>双飞控热备份</div>
+      <div class="chips chip-c"><span class="sym">auto_awesome</span>航时 90 min</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 指标条 ================= -->
+<div class="stats">
+  <div class="shell stats-inner">
+    <div class="stat rv"><span class="num" data-count="5.22" data-dec="2">0</span><sup style="font-size:.45em;color:var(--ink-3)">kg</sup><small>最大起飞重量</small><p>轻型类别 · 合规友好</p></div>
+    <div class="stat rv"><span class="num" data-count="90" data-dec="0">0</span><sup style="font-size:.45em;color:var(--ink-3)">min</sup><small>标称航时</small><p>巡航 19 m/s · 航程 100 km</p></div>
+    <div class="stat rv"><span class="num" data-count="1.64" data-dec="2">0</span><sup style="font-size:.45em;color:var(--ink-3)">cm</sup><small>可见光 GSD@120m</small><p>满足 1:500 精度要求</p></div>
+    <div class="stat rv"><span class="num" data-count="10" data-dec="0">0</span><sup style="font-size:.45em;color:var(--ink-3)">cm</sup><small>视觉引导着陆精度</small><p>RTK + ArUco 地标融合</p></div>
+  </div>
+</div>
+
+<!-- ================= 01 设计舱 ================= -->
+<section class="section" id="secDesign">
+  <div class="shell">
+    <div class="sec-head rv">
+      <div>
+        <div class="k">Module 01 · Design Lab</div>
+        <h2>设计舱：改参数，<br>即刻复算整机</h2>
+      </div>
+      <p>调整电池容量与任务载荷组合，重量堆叠、悬停功率、合规判定实时更新。平台与《一体化设计方案》共用同一套工程模型。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">dashboard</span>构型配置 · QUADPLANE 复合翼垂起</div>
+        <div class="panel-body">
+          <div class="ctl">
+            <label>动力电池容量（双包 6S2P 并联 · 21700）<b id="battCapV">16.0 Ah</b></label>
+            <input type="range" id="battCap" min="8" max="20" step="0.5" value="16">
+          </div>
+          <label style="display:flex;justify-content:space-between;font:500 12px var(--mono);letter-spacing:.05em;color:var(--ink-2);margin:18px 0 6px">任务载荷组合（点选切换）</label>
+          <ul id="loadList" style="list-style:none"></ul>
+          <div class="chart-note">基准动力选型：升力 4× MN2814-KV900 + 10×4.5 桨；巡航 1× MN3110-KV650 尾推 + 13×6.5 桨。可在《设计方案》中查看选型对比计算书。</div>
+        </div>
+      </div>
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">description</span>重量堆叠 · 实时</div>
+        <div class="panel-body">
+          <canvas id="massBar" style="width:100%;height:240px"></canvas>
+          <div class="reads" style="margin-top:16px">
+            <div class="read hero-read"><b><span id="dMtow">—</span></b><small>MTOW (kg)</small></div>
+            <div class="read"><b><span id="dHover">—</span></b><small>悬停功率 (W)</small></div>
+            <div class="read"><b><span id="dDisc">—</span></b><small>盘载荷 (N/m²)</small></div>
+            <div class="read"><b><span id="dStall">—</span></b><small>失速速度 (m/s)</small></div>
+            <div class="read"><b><span id="dRange">—</span> km</b><small>理论航程</small></div>
+            <div class="read"><b><span id="dEnd">—</span></b><small>理论航时 (min)</small></div>
+          </div>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="badge ok" id="dCat"><span class="sym">check_circle</span>轻型无人机</span>
+            <span id="dCompOk" style="font:400 12.5px var(--mono);color:var(--ink-2)">依据《无人驾驶航空器飞行管理暂行条例》</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 性能舱 ================= -->
+<section class="section alt" id="secPerf">
+  <div class="shell">
+    <div class="sec-head rv">
+      <div>
+        <div class="k">Module 02 · Performance</div>
+        <h2>性能舱：功率极曲线<br>与能量预算</h2>
+      </div>
+      <p>基于翼型升阻极曲线与推进效率链的方案级估算：最小功率点、巡航点、垂起/过渡/巡航三段能量瀑布，顶风工况一键重算。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">bolt</span>功率–空速极曲线</div>
+        <div class="panel-body">
+          <div class="chart-box tall"><canvas id="perfPolar"></canvas></div>
+          <div class="chart-note">最小功率点附近为最优滞空区；巡航点取 19 m/s（≈1.8 倍失速速度），兼顾效率与抗风裕度。</div>
+        </div>
+      </div>
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">merge_type</span>任务载荷–航时边界</div>
+        <div class="panel-body">
+          <div class="chart-box tall"><canvas id="perfLoad"></canvas></div>
+          <div class="chart-note">载荷每增加 100 g，理论航时约减 1 min——这是载荷选型与作业半径折中的定量依据（曲线由平台实时复算）。</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:22px">
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">history</span>能量瀑布（单架次预算）</div>
+        <div class="panel-body">
+          <div class="chart-box"><canvas id="perfWater"></canvas></div>
+        </div>
+      </div>
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">auto_awesome</span>风场敏感性</div>
+        <div class="panel-body">
+          <div class="ctl">
+            <label>顶风分量 <b id="windV">0 m/s 顶风</b></label>
+            <input type="range" id="wind" min="0" max="10" step="1" value="0">
+          </div>
+          <div class="reads">
+            <div class="read"><b><span id="pEnd">—</span></b><small>航时 (min)</small></div>
+            <div class="read"><b><span id="pRange">—</span></b><small>对地航程 (km)</small></div>
+            <div class="read"><b><span id="pGround">—</span></b><small>对地速度 (m/s)</small></div>
+          </div>
+          <div class="chart-note">巡检作业按 3–4 级风（3.3–5.4 m/s）设计边界：航时下降 &lt; 8%，仍在单架次任务包线内；6 级风以上自动返航（飞控限值）。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 任务舱 ================= -->
+<section class="section" id="secMission">
+  <div class="shell">
+    <div class="sec-head rv">
+      <div>
+        <div class="k">Module 03 · Mission</div>
+        <h2>任务舱：航测覆盖与<br>AI 巡检全流程</h2>
+      </div>
+      <p>两大核心作业场景的数字孪生：面状/带状航测的覆盖航线自动生成；城市低空巡检的机载识别、坐标标定与标准化成报。</p>
+    </div>
+
+    <!-- A 航测 -->
+    <div class="panel rv">
+      <div class="panel-head"><span class="sym">manage_search</span>任务 A · 航测覆盖航线仿真</div>
+      <div class="panel-body grid-2">
+        <div>
+          <div class="pill-group">
+            <button class="pill preset" data-p="river">河道带状 2.0×0.5 km</button>
+            <button class="pill preset on" data-p="square">标准 1 km²</button>
+            <button class="pill preset" data-p="campus">校园 0.36 km²</button>
+          </div>
+          <div class="ctl"><label>航高（真高）<b id="sAltV">120 m</b></label><input type="range" id="sAlt" min="60" max="150" step="5" value="120"></div>
+          <div class="ctl"><label>旁向重叠度 <b id="sSideV">65 %</b></label><input type="range" id="sSide" min="50" max="80" step="1" value="65"></div>
+          <div class="ctl"><label>航向重叠度 <b id="sFwdV">70 %</b></label><input type="range" id="sFwd" min="55" max="85" step="1" value="70"></div>
+          <div class="ctl"><label>测区长边 <b id="sLenV">1.0 km</b></label><input type="range" id="sLen" min="0.4" max="3" step="0.1" value="1"></div>
+          <div class="ctl"><label>测区短边 <b id="sWidV">1.0 km</b></label><input type="range" id="sWid" min="0.2" max="1.5" step="0.1" value="1"></div>
+          <div class="reads">
+            <div class="read hero-read"><b><span id="sGsd">—</span> cm</b><small id="sGsdNote">GSD</small></div>
+            <div class="read"><b><span id="sLines">—</span></b><small>航线数</small></div>
+            <div class="read"><b><span id="sPhotos">—</span></b><small>照片数</small></div>
+            <div class="read"><b><span id="sPath">—</span> km</b><small>航线总长</small></div>
+            <div class="read"><b><span id="sTime">—</span> min</b><small>预计任务时间</small></div>
+            <div class="read"><b><span id="sSwath">—</span></b><small>旁向幅宽 / 行距 <span id="sGap"></span></small></div>
+          </div>
+          <div style="margin-top:14px"><span class="badge ok" id="sSortie"><span class="sym">check_circle</span>单架次可完成</span></div>
+        </div>
+        <div><canvas id="surveyCv" class="mission-cv"></canvas><div class="chart-note">牛耕式覆盖航线（渐变线），蓝点为等时距曝光点；半 U 型转弯按 45 m 过渡半径修正航线长度。</div></div>
+      </div>
+    </div>
+
+    <!-- B 巡检 -->
+    <div class="panel rv" style="margin-top:22px">
+      <div class="panel-head"><span class="sym">smart_toy</span>任务 B · 城市低空 AI 巡检（模拟）</div>
+      <div class="panel-body">
+        <div class="grid-2">
+          <div>
+            <canvas id="patrolCv" class="mission-cv" style="height:360px"></canvas>
+            <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+              <button class="btn btn-pri" id="patrolBtn">▶ 执行 AI 巡检任务</button>
+              <span style="font:400 12px var(--mono);color:var(--ink-3)">紫色虚线为巡检航线 · 圆内为机载识别视场</span>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head" style="border:1px solid var(--hairline-soft);border-radius:12px 12px 0 0"><span class="sym">forum</span>机载识别事件流（GeoJSON 事件包）</div>
+            <ul class="feed" id="eventFeed" style="border:1px solid var(--hairline-soft);border-top:0;border-radius:0 0 12px 12px;padding:12px;min-height:120px"></ul>
+            <div class="report" id="reportBox" style="margin-top:14px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 安全舱 ================= -->
+<section class="section alt" id="secSafety">
+  <div class="shell">
+    <div class="sec-head rv">
+      <div>
+        <div class="k">Module 04 · Safety &amp; Compliance</div>
+        <h2>安全舱：合规检查器与<br>冗余降级策略</h2>
+      </div>
+      <p>依据《无人驾驶航空器飞行管理暂行条例》（国务院令第 761 号）构建的作业合规检查清单，以及关键单点失效后的降级策略矩阵。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">shield</span>作业合规检查器</div>
+        <div class="panel-body">
+          <div class="ctl"><label>作业区类型</label>
+            <select id="safeZone">
+              <option value="normal">一般区域（农田/水域/园区）</option>
+              <option value="urban">城市人口密集区</option>
+              <option value="airport">机场净空保护区周边</option>
+            </select>
+          </div>
+          <div class="ctl"><label>计划作业真高 <b id="safeAltV">120 m</b></label>
+            <input type="range" id="safeAlt" min="30" max="200" step="10" value="120" oninput="document.getElementById('safeAltV').textContent=this.value+' m'">
+          </div>
+          <button class="btn btn-pri" id="safeBtn">生成合规检查清单 <span class="sym">arrow_forward</span></button>
+          <div id="safeOut" style="margin-top:18px"><ul class="check-list" id="safeList"></ul></div>
+        </div>
+      </div>
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">device_hub</span>冗余架构与降级策略矩阵</div>
+        <div class="panel-body">
+          <ul class="check-list">
+            <li class="ok"><span class="sym">check_circle</span><span><b>双飞控热备份</b> — 主控失效 200 ms 内无缝切换，姿态保持并自动返航</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>双电池包隔离（6S2P×2）</b> — 单包故障自动隔离，剩余包支撑 15 km 返航航程</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>RTK + 双 GNSS + 光流 + 气压计</b> — 多源定位融合，卫星失锁自动降级光流定点</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>三级失控保护</b> — 悬停等待 10 s → 原路返航 → 开伞着陆（独立开绞盘电源）</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>电子围栏 + ADS-B</b> — 禁飞区硬约束、载人航空器接近自动避让告警</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>升力/巡航动力解耦</b> — 升力桨单臂失效可固定翼模式迫降；尾推失效四旋翼模式返场</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 方案说明 ================= -->
+<section class="section" id="secAbout">
+  <div class="shell">
+    <div class="sec-head rv">
+      <div>
+        <div class="k">Innovation · 四项核心创新</div>
+        <h2>AI 与低空装备的<br>四个结合点</h2>
+      </div>
+      <p>对标赛道"创新优化性"评审维度：每项创新都落到具体作业环节，可提升效率、降低门槛或强化安全。</p>
+    </div>
+    <div class="steps">
+      <div class="step rv"><div class="ic"><span class="sym">smart_toy</span></div><h3>机载边缘 AI 识别</h3><p>6 TOPS NPU 端侧部署轻量化检测模型，污染源/违建/垃圾堆积即拍即识，事件包内嵌 WGS84 坐标与置信度，免回传原始视频，节省 90% 链路带宽。</p><span class="tag">Innovation 01 · Edge AI</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">psychology</span></div><h3>能量–风场感知航线优化</h3><p>航线规划引入网格化风场修正功耗模型，按剩余电量动态调整巡航速度与返航时机，全程能耗较定速方案降低约 8%。</p><span class="tag">Innovation 02 · Energy-Aware</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">rocket_launch</span></div><h3>视觉引导精准降落</h3><p>ArUco 地标 + RTK 双冗余进近，着陆圆概率误差 ±10 cm，支持车载移动平台动态起降，适配无机场条件的巡检场景。</p><span class="tag">Innovation 03 · Precision Landing</span></div>
+      <div class="step rv"><div class="ic"><span class="sym">description</span></div><h3>大模型自动成报</h3><p>机载识别事件流自动汇聚为结构化任务包，地面站大模型按行业模板生成标准化巡检工作报告，人工复核后归档——呼应低空巡检岗位真实作业规范。</p><span class="tag">Innovation 04 · LLM Reporting</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 申报材料 ================= -->
+<section class="section alt" id="secSubmit">
+  <div class="shell">
+    <div class="sec-head rv">
+      <div>
+        <div class="k">Module 05 · Submission</div>
+        <h2>申报材料对照清单</h2>
+      </div>
+      <p>对照赛道指南"线上申报材料提交规范"逐项自检——材料格式不合规视为无效申报。</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">check_circle</span>提交项自检（科目一 · 技术创新赛）</div>
+        <div class="panel-body">
+          <ul class="sub-list">
+            <li><span class="sym">check_circle</span>项目申报书及承诺书（系统生成 → 签字 → 扫描上传）</li>
+            <li><span class="sym">check_circle</span>低空领域作品介绍文档（PDF，含名称/关键词/概述/痛点/创新/落地/成效）</li>
+            <li><span class="sym">check_circle</span>演示视频（MP4 ≤ 10 min ≤ 500 MB，2+6+2 分段）</li>
+            <li><span class="sym">check_circle</span>佐证材料（选报 ≤ 100 MB）：设计方案 + 本平台录屏 + 计算书</li>
+            <li><span class="sym">check_circle</span>AI 生成内容已人工审核（合规总则第 1 条要求）</li>
+            <li><span class="sym">check_circle</span>开发平台 / 工具 / AI 模型来源已如实标注（第十一条第 2 款）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel rv">
+        <div class="panel-head"><span class="sym">terminal</span>关键时间节点</div>
+        <div class="panel-body">
+          <ul class="check-list">
+            <li class="ok"><span class="sym">check_circle</span><span><b>报名截止</b> — 2026-10-15（线上提交全部材料）</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>预赛评审</b> — 2026-10-16 ~ 10-31（专家线上评审）</span></li>
+            <li class="ok"><span class="sym">check_circle</span><span><b>决赛</b> — 2026 年 11 月初（地点另行通知）</span></li>
+            <li class="bad"><span class="sym">bolt</span><span><b>校内选拔</b> — 同济校内预赛截止时间以学院通知为准，务必提前完成校内流程</span></li>
+          </ul>
+          <div class="chart-note">单一赛道的唯一申报机制：同一作品仅可申报一个组别、一条赛道，确认后再填报。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 页脚 ================= -->
+<footer class="site-footer">
+  <div class="shell foot-grid">
+    <div>
+      <a class="brand" href="#top" style="color:#fff;margin-bottom:16px"><span class="sig sym">rocket_launch</span><span>翎雁 LY-100<small>一体化设计与任务仿真平台 v1.0</small></span></a>
+      <p style="margin-top:14px;max-width:380px">2026"AI+教育"创新应用技能大赛 · 大学生 AI 创新创业组 · 低空装备技术应用赛道（科目一：低空装备技术创新赛）参赛作品配套平台。</p>
+    </div>
+    <div>
+      <h4>平台模块</h4>
+      <a href="#secDesign">01 设计舱 · 重量与构型</a>
+      <a href="#secPerf">02 性能舱 · 极曲线与能量</a>
+      <a href="#secMission">03 任务舱 · 航测与巡检</a>
+      <a href="#secSafety">04 安全舱 · 合规与冗余</a>
+    </div>
+    <div>
+      <h4>数据与声明</h4>
+      <p>工程模型为方案级估算，系数取自厂商台架数据与同类机型公开资料拟合，不替代实测验证。</p>
+      <p>场景数据为程序生成的演示数据，与任何真实地点、事件无关。</p>
+    </div>
+  </div>
+  <div class="shell foot-base">
+    <span>© 2026 翎雁 LY-100 参赛团队 · 用于赛事评审与教育公益展示</span>
+    <span>LingYan LY-100 · QuadPlane VTOL · 5 kg class</span>
+  </div>
+</footer>
+
+<script src="assets/js/eng.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/mission.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

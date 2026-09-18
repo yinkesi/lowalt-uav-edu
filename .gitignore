@@ -1,0 +1,4 @@
+.shots/
+*.pyc
+__pycache__/
+Thumbs.db

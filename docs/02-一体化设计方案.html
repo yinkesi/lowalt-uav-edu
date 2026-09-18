@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>翎雁 LY-100 低空智能巡检测绘飞行器一体化设计方案</title>
+<style>
+@font-face{font-family:"Figtree";src:url("../simulator/assets/fonts/figtree-var.woff2") format("woff2");font-weight:300 900;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("../simulator/assets/fonts/jetbrains-mono-var.woff2") format("woff2");font-weight:300 800;font-display:swap}
+:root{--ink:#212226;--ink2:#5d6270;--ink3:#8f95a3;--blue:#4285f4;--violet:#9b72cb;--pink:#d96570;--green:#3aa475;
+  --hair:rgba(33,34,38,.14);--grad:linear-gradient(100deg,#4285f4 8%,#9b72cb 52%,#d96570 96%);
+  --sans:"Figtree","PingFang SC","Microsoft YaHei UI",sans-serif;--mono:"JetBrains Mono",Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);font-size:10.5pt;line-height:1.75;background:#f1f3f7}
+.page{width:210mm;min-height:297mm;margin:10mm auto;background:#fff;padding:20mm 18mm;box-shadow:0 8px 40px rgba(0,0,0,.12);position:relative}
+@media print{body{background:#fff}.page{margin:0;box-shadow:none;width:auto;min-height:auto;padding:12mm 15mm}td{padding:1.7mm 2.6mm}p{margin:0 0 2.2mm}table{margin:2.2mm 0 3mm}h3{margin:3.6mm 0 1.6mm}.note{padding:2mm 3.4mm;margin:2mm 0}figure{margin:3mm 0}h2,h3{break-after:avoid}.formula{padding:1.8mm 3mm;margin:1.8mm 0;font-size:8.6pt}.callout{padding:2.6mm 4mm;margin:2.4mm 0}table,figure,.callout,.note,.formula,.metric-row{break-inside:avoid}tr{break-inside:avoid}li{break-inside:avoid}.pb{page-break-before:always}}
+h1{font-size:23pt;font-weight:560;letter-spacing:-.02em;line-height:1.22;margin:6mm 0 3mm}
+h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:14.5pt;font-weight:580;letter-spacing:-.01em;margin:8mm 0 3mm;padding-top:2mm;border-top:2.5px solid var(--ink)}
+h2 .no{font-family:var(--mono);font-size:10pt;color:var(--pink);margin-right:2.4mm}
+h3{font-size:11.5pt;font-weight:580;margin:5mm 0 2mm}
+p{margin:0 0 2.6mm;text-align:justify}
+ul,ol{margin:0 0 2.6mm 5.5mm}
+li{margin-bottom:1.2mm}
+.mono,.eyebrow{font-family:var(--mono)}
+.eyebrow{font-size:8pt;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+.cover-eyebrow{display:inline-block;padding:1.6mm 4mm;border:1px solid var(--hair);border-radius:99px;font-size:8pt;color:var(--ink2)}
+table{width:100%;border-collapse:collapse;margin:3mm 0 4mm;font-size:9pt}
+th{background:#f1f3f7;text-align:left;font-weight:600;padding:2.2mm 3mm;border:1px solid var(--hair)}
+td{padding:2mm 3mm;border:1px solid var(--hair);vertical-align:top}
+tr:nth-child(even) td{background:#fafbfc}
+.kv b{color:var(--blue)}
+.formula{font-family:var(--mono);font-size:9pt;background:#f8f9fb;border:1px solid var(--hair);border-left:3px solid var(--violet);padding:2.6mm 4mm;margin:2.5mm 0;border-radius:2mm}
+.note{font-size:8.5pt;color:var(--ink2);background:#f8f9fb;border:1px solid var(--hair);border-radius:2mm;padding:2.5mm 4mm;margin:2.5mm 0}
+.callout{background:linear-gradient(135deg,rgba(66,133,244,.07),rgba(217,101,112,.05));border:1px solid rgba(66,133,244,.22);border-radius:3mm;padding:3.5mm 5mm;margin:3mm 0}
+.callout b.t{display:block;font-size:10.5pt;margin-bottom:1.5mm}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:4mm 0}
+.metric{border:1px solid var(--hair);border-radius:2.5mm;padding:3mm;text-align:left}
+.metric b{font-size:15pt;font-weight:560;letter-spacing:-.02em;display:block}
+.metric b sup{font-size:8pt;color:var(--ink3)}
+.metric small{font-size:7.5pt;color:var(--ink2);letter-spacing:.06em}
+footer.sig{margin-top:8mm;padding-top:3mm;border-top:1px solid var(--hair);font-size:8pt;color:var(--ink3);display:flex;justify-content:space-between}
+figure{margin:4mm 0}
+figure svg{width:100%;border:1px solid var(--hair);border-radius:2mm;background:#fcfcfd}
+figcaption{font-size:8pt;color:var(--ink2);margin-top:1.5mm;font-family:var(--mono)}
+.toc{columns:2;column-gap:8mm;font-size:9.5pt}
+.toc div{padding:1mm 0;border-bottom:1px dashed var(--hair)}
+.toc b{font-family:var(--mono);color:var(--pink);margin-right:2mm}
+</style>
+</head>
+<body>
+
+<!-- ================= 封面 ================= -->
+<div class="page">
+  <span class="cover-eyebrow">2026"AI+教育"创新应用技能大赛 · 大学生 AI 创新创业组 · 低空装备技术应用赛道 · 科目一：低空装备技术创新赛（本科组）</span>
+  <h1>翎雁 LY-100<br><span class="g">低空智能巡检测绘飞行器</span><br>一体化设计方案</h1>
+  <p class="eyebrow" style="margin:2mm 0 6mm">LINGYAN LY-100 · INTEGRATED DESIGN REPORT OF AN AI-ENABLED VTOL SURVEY &amp; INSPECTION UAV · REV 1.0</p>
+
+  <div class="metric-row">
+    <div class="metric"><b>5.22<sup>kg</sup></b><small>最大起飞重量</small></div>
+    <div class="metric"><b>93<sup>min</sup></b><small>理论航时（巡航）</small></div>
+    <div class="metric"><b>1.64<sup>cm</sup></b><small>GSD @ 120 m</small></div>
+    <div class="metric"><b>6<sup>TOPS</sup></b><small>机载边缘 AI 算力</small></div>
+  </div>
+
+  <h3>摘要</h3>
+  <p>翎雁 LY-100 是一款面向低空经济两大高频作业场景——<b>城市低空巡检</b>（污染源、违法建筑、建筑垃圾搜寻）与<b>中小测区应急测绘</b>——的复合翼垂起（QuadPlane VTOL）低空智能飞行器。作品围绕赛道要求的五大核心模块（总体构型、动力匹配、任务载荷、轻量化结构、安全冗余）开展一体化设计，最大起飞重量 5.22 kg（属《无人驾驶航空器飞行管理暂行条例》规定的轻型类别），标称航时 90 min、航程 100 km，120 m 航高可见光地面分辨率 1.64 cm，1 km² 标准测区单架次 24 min 完成。方案深度融合人工智能技术：机载 6 TOPS 边缘 NPU 实现巡检目标即拍即识、能量–风场感知的航线自优化、视觉引导 ±10 cm 精准降落、大模型辅助标准化巡检成报。全部设计参数经配套"一体化设计与任务仿真平台"数字验证，形成"设计—仿真—迭代"闭环，并给出台架与样机飞行两级实物验证方案及产业化落地构想。</p>
+
+  <h3>核心关键词</h3>
+  <p><b>复合翼垂起无人机 · 机载边缘 AI · 低空巡检 · 应急测绘 · 安全冗余</b></p>
+
+  <h3>目录</h3>
+  <div class="toc">
+    <div><b>01</b>需求分析与设计目标</div>
+    <div><b>02</b>总体构型设计</div>
+    <div><b>03</b>动力系统匹配设计</div>
+    <div><b>04</b>任务载荷集成设计</div>
+    <div><b>05</b>机身轻量化结构优化</div>
+    <div><b>06</b>飞行安全冗余设计</div>
+    <div><b>07</b>仿真与实物验证方案</div>
+    <div><b>08</b>AI 创新点汇总</div>
+    <div><b>09</b>产业化与教学落地构想</div>
+    <div><b>10</b>合规与研发工具声明</div>
+  </div>
+
+  <footer class="sig"><span>参赛团队：同济大学本科学生团队（填报时以申报系统为准）</span><span>2026-09 · REV 1.0</span></footer>
+</div>
+
+<!-- ================= 01 需求 ================= -->
+<div class="page pb">
+  <h2><span class="no">01</span>需求分析与设计目标</h2>
+  <h3>1.1 行业岗位痛点</h3>
+  <p>低空经济被写入政府工作报告以来，无人机巡检与测绘作业需求快速增长。结合团队在测绘地理信息专业的实训观察与低空一线岗位调研，当前中小型作业单元存在三类典型痛点：</p>
+  <table>
+    <tr><th style="width:26%">痛点</th><th>具体表现</th><th style="width:30%">对装备的能力要求</th></tr>
+    <tr><td><b>多旋翼"看不远"</b></td><td>纯多旋翼航时普遍 30–45 min，巡检半径小、效率低；河道、管网、道路等线性目标巡检需频繁换电，单日有效作业窗口短</td><td>长航时（≥80 min）、快速转场、垂起免跑道</td></tr>
+    <tr><td><b>固定翼"落不下"</b></td><td>纯固定翼需跑道或弹射架，城市与河道场景无起降条件；测绘外业场地狭窄</td><td>垂直起降 + 短距精准着陆（车载平台兼容）</td></tr>
+    <tr><td><b>数据"回不来、用不上"</b></td><td>巡检依赖飞手目视+回传视频人工盯屏，漏检率高；发现目标后坐标标注靠人工刺点，成报耗时长、格式不一</td><td>机载 AI 实时识别 + 坐标自动标定 + 标准化成报</td></tr>
+  </table>
+
+  <h3>1.2 任务剖面</h3>
+  <p>LY-100 的基准任务剖面为"车载转场 → 垂直起飞 → 爬升至 120 m → 倾转过渡 → 巡航 19 m/s 抵达作业区 → 网格化航测 / 蛇形巡检（机载 AI 同步识别）→ 返航 → 视觉引导精准降落"。全程不超过 120 m 真高，单架次覆盖 1 km² 测区或 2 km 河道带状区，作业结束后 3 min 内输出标准化巡检事件清单。</p>
+
+  <h3>1.3 设计目标与达成情况</h3>
+  <table>
+    <tr><th>指标</th><th>设计目标</th><th>方案达成值（平台仿真）</th><th>依据</th></tr>
+    <tr><td>最大起飞重量 MTOW</td><td>≤ 5.5 kg（轻型类别）</td><td class="kv"><b>5.22 kg</b></td><td>重量堆叠表 §2.4</td></tr>
+    <tr><td>理论航时 / 航程</td><td>≥ 90 min / ≥ 100 km</td><td class="kv"><b>93.4 min / 106.5 km</b></td><td>能量预算 §3.4</td></tr>
+    <tr><td>巡航速度 / 失速速度</td><td>巡航 ≥ 1.7 Vs</td><td class="kv"><b>19 m/s / 10.8 m/s（1.75 Vs）</b></td><td>气动计算 §2.3</td></tr>
+    <tr><td>可见光 GSD @120 m</td><td>≤ 5 cm（1:500 航测）</td><td class="kv"><b>1.64 cm</b></td><td>载荷计算 §4.2</td></tr>
+    <tr><td>1 km² 测区作业时间</td><td>单架次 ≤ 30 min</td><td class="kv"><b>23.8 min（含起降过渡）</b></td><td>任务仿真 §7.2</td></tr>
+    <tr><td>机载 AI 识别</td><td>3 类巡检目标实时识别</td><td class="kv"><b>污染源/违建/垃圾，端侧 ≥15 fps</b></td><td>载荷方案 §4.3</td></tr>
+    <tr><td>着陆精度</td><td>CEP ≤ 0.3 m</td><td class="kv"><b>±10 cm（RTK+视觉引导）</b></td><td>创新点 §8.3</td></tr>
+    <tr><td>单点失效安全</td><td>关键链路冗余覆盖</td><td class="kv"><b>飞控/电池/定位/动力四域冗余</b></td><td>安全设计 §6</td></tr>
+    <tr><td>整机材料成本</td><td>≤ 4 万元/架（教学推广版）</td><td class="kv"><b>估算 3.6 万元</b></td><td>BOM §9.1</td></tr>
+  </table>
+  <div class="note">说明：上表达成值为方案级工程估算与仿真结果，其计算模型、系数与中间量在第 2–7 章逐项给出，并可在配套仿真平台中交互复算；实物样机验证计划见第 7 章。平台工程模型为概念设计精度（系数取自厂商台架数据与同类机型公开资料拟合），最终以样机试飞实测为准。</div>
+</div>
+
+<!-- ================= 02 总体构型 ================= -->
+<div class="page pb">
+  <h2><span class="no">02</span>总体构型设计</h2>
+  <h3>2.1 构型对比与选型</h3>
+  <p>面向"城市/河道巡检 + 中小测区测绘"复合场景，对三类垂起构型进行了定量对比：</p>
+  <table>
+    <tr><th style="width:20%">构型</th><th>优势</th><th>劣势</th><th style="width:24%">结论</th></tr>
+    <tr><td>倾转旋翼</td><td>过渡平顺、巡航效率最高</td><td>控制律复杂、电机舵机成本高、故障模式多、维护门槛高，与本作品"低门槛可复制"定位冲突</td><td>不采用</td></tr>
+    <tr><td><b>QuadPlane 复合翼垂起</b></td><td>升力/巡航动力解耦、控制成熟、桨叶小安全性好、可拆装运输</td><td>垂直段效率略低于倾转构型；升力桨巡航时产生废阻（本方案以整流罩抑制）</td><td><b>采用</b></td></tr>
+    <tr><td>尾座式垂起</td><td>结构最简、无冗余动力</td><td>起降姿态垂直、载荷指向受限、抗风起降差，不满足城市巡检对平稳起降的要求</td><td>不采用</td></tr>
+  </table>
+
+  <h3>2.2 气动布局</h3>
+  <p>采用常规上单翼 + T 尾布局：上单翼为下视相机提供无遮挡视场，T 尾将平尾置于滑流之上，兼顾俯仰效率与尾容。四具升力桨沿前后梁对称布置，桨盘低于机翼下表面并加整流短舱，巡航时升力桨自锁顺桨，废阻增量控制在整机 CD0 的 8% 以内（已计入 CD0=0.035）。</p>
+
+  <figure>
+    <svg viewBox="0 0 700 396" xmlns="http://www.w3.org/2000/svg" style="max-width:640px;margin:0 auto">
+      <!-- 顶视图 -->
+      <g transform="translate(28,10)">
+        <text x="0" y="0" font-family="JetBrains Mono" font-size="9" fill="#8f95a3">TOP VIEW · 顶视</text>
+        <path d="M 120 62 L 320 40 L 470 40 L 640 62 L 640 84 L 470 68 L 320 68 L 120 84 Z" fill="rgba(66,133,244,.10)" stroke="#212226" stroke-width="1.2"/>
+        <rect x="60" y="56" width="500" height="26" rx="13" fill="#fff" stroke="#212226" stroke-width="1.2"/>
+        <path d="M 40 50 L 20 42 L 20 96 L 40 88 Z" fill="rgba(155,114,203,.14)" stroke="#212226" stroke-width="1"/>
+        <g stroke="#d96570" stroke-width="1.5" fill="none">
+          <circle cx="180" cy="32" r="20"/><circle cx="180" cy="106" r="20"/>
+          <circle cx="440" cy="32" r="20"/><circle cx="440" cy="106" r="20"/>
+        </g>
+        <g stroke="#3aa475" stroke-width="1.5" fill="none"><circle cx="30" cy="69" r="26"/></g>
+        <g stroke="#8f95a3" stroke-width="0.8" font-family="JetBrains Mono" font-size="9" fill="#5d6270">
+          <line x1="20" y1="136" x2="640" y2="136"/><line x1="20" y1="131" x2="20" y2="141"/><line x1="640" y1="131" x2="640" y2="141"/>
+          <text x="330" y="149" text-anchor="middle" font-size="10">翼展 b = 2600 mm</text>
+          <text x="470" y="22">Ø254 升力桨 ×4</text>
+          <text x="600" y="118">Ø330 尾推桨</text>
+        </g>
+      </g>
+      <!-- 侧视图 -->
+      <g transform="translate(28,178)">
+        <text x="0" y="0" font-family="JetBrains Mono" font-size="9" fill="#8f95a3">SIDE VIEW · 侧视</text>
+        <path d="M 20 24 Q 120 2 330 4 Q 520 6 630 28 L 630 40 Q 450 34 300 34 Q 130 34 20 38 Z" fill="#fff" stroke="#212226" stroke-width="1.2"/>
+        <path d="M 30 28 L 6 18 L 6 52 L 30 44" fill="rgba(155,114,203,.14)" stroke="#212226" stroke-width="1"/>
+        <line x1="6" y1="18" x2="6" y2="52" stroke="#212226" stroke-width="1.2"/>
+        <g stroke="#d96570" stroke-width="1.4" fill="none"><circle cx="180" cy="58" r="15"/><circle cx="450" cy="58" r="15"/></g>
+        <g stroke="#8f95a3" stroke-width="0.8"><line x1="180" y1="73" x2="180" y2="80"/><line x1="450" y1="73" x2="450" y2="80"/></g>
+        <text x="330" y="80" font-family="JetBrains Mono" font-size="9" fill="#5d6270">机长 1450 mm · T 尾 · 上单翼下视场无遮挡</text>
+      </g>
+      <!-- 前视图 -->
+      <g transform="translate(28,288)">
+        <text x="0" y="0" font-family="JetBrains Mono" font-size="9" fill="#8f95a3">FRONT VIEW · 前视</text>
+        <!-- 机翼（3° 上反） -->
+        <path d="M 340 40 L 110 27 L 110 37 L 340 52 L 570 37 L 570 27 L 340 40 Z" fill="rgba(66,133,244,.10)" stroke="#212226" stroke-width="1.2"/>
+        <!-- 机身 -->
+        <rect x="326" y="34" width="28" height="34" rx="11" fill="#fff" stroke="#212226" stroke-width="1.2"/>
+        <!-- T 尾 -->
+        <line x1="340" y1="34" x2="340" y2="10" stroke="#212226" stroke-width="1.4"/>
+        <rect x="292" y="6" width="96" height="6" rx="3" fill="rgba(155,114,203,.14)" stroke="#212226" stroke-width="1"/>
+        <!-- 升力桨 -->
+        <g stroke="#d96570" stroke-width="1.5" fill="none">
+          <circle cx="165" cy="66" r="17"/><circle cx="515" cy="66" r="17"/>
+        </g>
+        <g stroke="#8f95a3" stroke-width="0.8"><line x1="165" y1="40" x2="165" y2="49"/><line x1="515" y1="40" x2="515" y2="49"/></g>
+        <g stroke="#8f95a3" stroke-width="0.8" font-family="JetBrains Mono" font-size="9" fill="#5d6270">
+          <line x1="110" y1="98" x2="570" y2="98"/><line x1="110" y1="93" x2="110" y2="103"/><line x1="570" y1="93" x2="570" y2="103"/>
+          <text x="340" y="111" text-anchor="middle" font-size="10">翼展 b = 2600 mm · 上反角 3°</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>图 2-1 翎雁 LY-100 三视图（顶视 / 侧视 / 前视 · 示意，公差与详图见配套图纸包）</figcaption>
+  </figure>
+
+  <h3>2.3 气动参数与飞行品质</h3>
+  <table>
+    <tr><th>参数</th><th>数值</th><th>说明</th></tr>
+    <tr><td>翼展 / 机长</td><td>2.60 m / 1.45 m</td><td>可快拆为 4 段，收纳长 ≤ 0.9 m</td></tr>
+    <tr><td>翼面积 / 展弦比</td><td>0.62 m² / 10.9</td><td>展弦比兼顾诱导阻力与展向刚度</td></tr>
+    <tr><td>翼型</td><td>NACA2412（翼尖 -2° 几何扭转）</td><td>低雷诺数特性成熟、资料完备，适合院校复现</td></tr>
+    <tr><td>巡航 CL / CD</td><td>0.374 / 0.0398</td><td>19 m/s @ 海平面标准大气</td></tr>
+    <tr><td>升阻比 L/D</td><td>≈ 9.4</td><td>含升力桨短舱废阻修正</td></tr>
+    <tr><td>失速速度 Vs</td><td>10.8 m/s（CLmax=1.15）</td><td>巡航 1.75 Vs，满足抗扰与阵风裕度</td></tr>
+    <tr><td>翼载荷</td><td>82.6 N/m²</td><td>对应抗风能力约 5 级风（10.7 m/s）</td></tr>
+  </table>
+
+  <h3>2.4 重量堆叠与重心</h3>
+  <table>
+    <tr><th>分项</th><th style="width:18%">质量 (kg)</th><th>构成说明</th></tr>
+    <tr><td>机体结构（机身/机翼/尾翼）</td><td>1.300</td><td>碳纤维主梁 + 泡沫复合机翼 + PAHT-CF 打印连接件（§5）</td></tr>
+    <tr><td>升力动力 ×4</td><td>0.684</td><td>MN2814-KV900 电机 ×4 + 20 A 电调 ×4 + 10×4.5 桨 ×4</td></tr>
+    <tr><td>巡航动力 ×1</td><td>0.315</td><td>MN3110-KV650 尾推电机 + 40 A 电调 + 13×6.5 桨</td></tr>
+    <tr><td>动力电池组</td><td>1.421</td><td>双包 6S2P 并联（21700 电芯 4 Ah×2 并/包），合计 16 Ah / 355 Wh（250 Wh/kg）</td></tr>
+    <tr><td>飞行航电</td><td>0.300</td><td>双冗余飞控 + RTK 双天线 + 数传 + 接收机</td></tr>
+    <tr><td>任务载荷</td><td>1.020</td><td>三轴云台可见光 620 g + 多光谱 180 g + 边缘 AI 180 g + ADS-B 40 g</td></tr>
+    <tr><td>线缆与紧固件</td><td>0.180</td><td>动力线束、信号线、快拆卡扣</td></tr>
+    <tr><td><b>最大起飞重量 MTOW</b></td><td><b>5.220</b></td><td><b>结构比 24.9%；&lt; 7 kg 判定为轻型类别</b></td></tr>
+  </table>
+  <p>重心管理：电池舱沿机身纵轴可调（±60 mm），飞行前按载荷组合配平，基准构型重心位于 24% 平均气动弦长（MAC）附近，满足俯仰静稳定裕度 8–12% 的设计区间；前后升力桨间距与重心对中设计使垂直段四桨载荷均衡（单桨载荷偏差 ≤ 5%）。</p>
+</div>
+
+<!-- ================= 03 动力 ================= -->
+<div class="page pb">
+  <h2><span class="no">03</span>动力系统匹配设计</h2>
+  <h3>3.1 双动力分区架构</h3>
+  <p>垂直段与巡航段功率需求相差 4–5 倍，单一动力系统必然"大马拉小车"。LY-100 采用双动力分区：4 具大拉力低 KV 电机负责垂直段，1 具高效率尾推电机负责巡航段，独立电调与供电母线、飞控统一调度，任一区失效可由另一区维持可控飞行（§6.3）。</p>
+
+  <h3>3.2 垂直段：拉力匹配与悬停校核</h3>
+  <div class="formula">4 桨总盘面积 A = 4 × π × (0.254/2)² = 0.2027 m²；盘载荷 = 252.6 N/m²（&lt; 280 ✓）；悬停需用电功率（比功率法，含盘载荷修正）P<sub>hover</sub> = 165 W/kg × 5.22 × (0.85 + 0.15 × 252.6/243) ≈ 866 W（166 W/kg，正常区间）</div>
+  <p>起飞峰值功率 P<sub>TO</sub> ≈ 1.45 × P<sub>hover</sub> ≈ 1256 W。选用 MN2814-KV900 配 10×4.5 桨（6S）：台架单桨最大拉力 1.9 kgf，四桨合计 7.6 kgf，起飞推重比 <b>1.46</b>；4 m/s 垂直爬升油门约 75%，留 30% 操纵余量，满足楼群间爬升的抗风下沉改出需求。</p>
+
+  <h3>3.3 巡航段：需用功率与选型</h3>
+  <div class="formula">巡航需用功率链：D = CD·½ρV²S = 5.46 N → P<sub>aero</sub> = D·V = 103.6 W<br>
+  P<sub>elec</sub> = P<sub>aero</sub> / (η<sub>prop</sub>·η<sub>esc</sub>) = 103.6 / (0.60 × 0.95) ≈ <b>181.8 W</b>（电流 8.2 A @ 22.2 V）</div>
+  <p>尾推选用 MN3110-KV650 配 13×6.5 桨：19 m/s 时前进比 J = V/(nD) 落在高效率区，台架效率约 0.60，静态拉力 3.8 kgf 保证固定翼模式单动力迫降能力。极曲线扫描显示经济速度区间 12–16 m/s，巡航点 19 m/s 主动让渡约 6% 能量效率，换取 1.75 Vs 阵风裕度与排班效率。</p>
+
+  <h3>3.4 能量预算与续航计算书</h3>
+  <table>
+    <tr><th>阶段</th><th>功率/能耗</th><th>时间</th><th>能耗</th></tr>
+    <tr><td>垂直爬升 0→120 m（4 m/s）</td><td>866 × 1.35 ≈ 1169 W</td><td>30 s</td><td>9.7 Wh</td></tr>
+    <tr><td>倾转过渡 + 降落过渡</td><td>≈ 700 W（均值）</td><td>45 s</td><td>9.0 Wh</td></tr>
+    <tr><td>巡航平飞</td><td>181.8 W</td><td>≤ 92 min</td><td>279.5 Wh</td></tr>
+    <tr><td><b>合计</b></td><td>—</td><td><b>≈ 93.4 min</b></td><td><b>298.2 Wh（可用 301.9 Wh）</b></td></tr>
+  </table>
+  <div class="formula">理论航时 t = (301.9 − 18.7) / 181.8 ≈ <b>93.4 min</b>；理论航程 ≈ <b>106.5 km</b>（93.4 min × 19 m/s）</div>
+  <p><b>标称值取 90 min / 100 km</b>：对模型误差、容量衰减（&lt;90% EOL）与 3 级风留 10% 裕度；4 m/s 顶风对地航程降至 84.1 km（平台可交互验证），6 级风以上自动返航。<b>电调与配电</b>：电调按峰值电流 1.5 倍降额（升力 20 A×4、巡航 40 A×1），支持 DShot600 与软件锁桨；配电板双路独立 BEC 供电，母线 12 AWG、分支独立保险丝；电池双包防反插并联，单包故障自动隔离（§6.2）。</p>
+</div>
+
+<!-- ================= 04 载荷 ================= -->
+<div class="page pb">
+  <h2><span class="no">04</span>任务载荷集成设计</h2>
+  <h3>4.1 载荷系统组成</h3>
+  <table>
+    <tr><th>载荷</th><th>型号/规格</th><th>质量</th><th>用途</th></tr>
+    <tr><td>三轴增稳云台可见光相机</td><td>1/1.3″ CMOS 48 MP，等效焦距 24 mm，支持定时/等距曝光</td><td>620 g</td><td>航测成像、巡检影像取证</td></tr>
+    <tr><td>五通道多光谱模块（选配）</td><td>B/G/R/Rededge/NIR，1/2″，全局快门</td><td>180 g</td><td>水质反演、植被长势、污染面提取</td></tr>
+    <tr><td>机载边缘 AI 模块</td><td>6 TOPS NPU（RK3588 级），功耗 ≤ 15 W，预置轻量化检测模型</td><td>180 g</td><td>巡检目标端侧实时识别（§4.3）</td></tr>
+    <tr><td>ADS-B 接收 / 围栏终端</td><td>1090 MHz 接收，5 km 内载人机预警</td><td>40 g</td><td>空域安全（§6.2）</td></tr>
+  </table>
+
+  <h3>4.2 成像质量计算</h3>
+  <div class="formula">GSD = 像元尺寸 × 航高 / 焦距 = 1.2 μm × 120 m / 8.8 mm ≈ <b>1.64 cm/pixel</b><br>
+  旁向幅宽 = 9.6/8.8 × 120 m = 130.9 m；航向幅宽 = 7.2/8.8 × 120 m = 98.2 m</div>
+  <p>按 1:500 航测规范常用重叠度（旁向 65%、航向 70%）计算：航线间距 45.8 m、等距曝光间隔 29.5 m；标准 1 km² 测区共 <b>22 条航线、748 张影像、23.5 km 航线长</b>，预计任务时间 23.8 min（含起降与过渡 3.2 min），<b>单架次完成</b>。多光谱模块换装后 GSD ≈ 5.5 cm @ 120 m，满足面源污染光谱普查需求。</p>
+
+  <h3>4.3 机载边缘 AI 数据链路</h3>
+  <p>边缘模块对下视影像流执行"抽帧 → 检测 → 坐标解算 → 事件打包"四级流水线：</p>
+  <ol>
+    <li><b>抽帧</b>：对视频流按 2 Hz 抽帧送检（检测帧独立于测绘曝光帧，互不干扰）；</li>
+    <li><b>检测</b>：轻量化目标检测模型（YOLO 系列蒸馏模型，国产深度学习框架训练导出）识别疑似排污口/黑臭水体、违法建筑（含新增违建变化检测）、建筑垃圾堆积三类目标，端侧推理 ≥ 15 fps；</li>
+    <li><b>坐标解算</b>：命中目标后调用该帧曝光瞬间的 RTK 位置与云台姿态，按共线方程解算目标 WGS84 坐标，定位精度亚米级；</li>
+    <li><b>事件打包</b>：生成 GeoJSON 事件包（类别、置信度、坐标、时间戳、裁剪证据图），经数传链路回传地面站——<b>只回传事件不回传视频</b>，链路带宽占用降低约 90%，解决偏远区域 4G 弱信号下的巡检可靠性问题。</li>
+  </ol>
+  <div class="callout"><b class="t">载荷集成约束落实</b>全部载荷经统一快拆托盘集成，供电取自载荷 BEC（与动力母线隔离）；云台减震球频率与机身一阶模态错开设计；边缘模块紧贴机身侧壁风冷气道布置，15 W 满功耗温升经仿真控制在 18 ℃ 以内（夏季 40 ℃ 环境可用）。载荷增减通过设计舱勾选即自动重算配平与性能（见配套平台）。</div>
+</div>
+
+<!-- ================= 05 轻量化 ================= -->
+<div class="page pb">
+  <h2><span class="no">05</span>机身轻量化结构优化</h2>
+  <h3>5.1 材料体系</h3>
+  <table>
+    <tr><th>部件</th><th>材料/工艺</th><th>选型理由</th></tr>
+    <tr><td>翼梁、机身纵梁</td><td>Ø16×1.0 mm 3K 碳纤维圆管（T300）</td><td>比刚度最高，快拆接口标准化（通用管径，院校易采购）</td></tr>
+    <tr><td>机翼/尾翼</td><td>KT 板芯 + 碳纤维蒙皮复合，热压成型</td><td>比模量与成本平衡；翼面抗弯刚度满足 5 级风阵风载荷</td></tr>
+    <tr><td>机身舱段</td><td>PAHT-CF 3D 打印（FDM，25% 壁厚梯度填充）</td><td>迭代快、免开模；碳纤增强尼龙抗冲击与耐候性达标</td></tr>
+    <tr><td>连接件/电机座</td><td>PAHT-CF 打印 + 金属嵌件</td><td>嵌件螺纹保证拆装寿命 ≥ 200 次</td></tr>
+  </table>
+
+  <h3>5.2 减重措施与效果</h3>
+  <ul>
+    <li><b>拓扑减材</b>：电机座与翼根接头按主受力路径拓扑优化并打印，较初版实心件减重 38%（单件 46 g → 28.5 g，全机 4 件共减 70 g）；</li>
+    <li><b>功能集成</b>：升力桨短舱整流罩与电机座一体打印，减少零件数 9 个、紧固件 18 颗，减重 32 g 并降低装配工时；</li>
+    <li><b>壁厚梯度</b>：机身舱按有限元应力云图分区设置壁厚（1.2–2.4 mm），减重 24 g；</li>
+    <li><b>线束优化</b>：动力线束按最短路径走线并取消冗余接插件，减重 18 g。</li>
+  </ul>
+  <p>合计减重约 <b>144 g</b>，折算航时增益约 <b>+2.6 min</b>（按 §3.4 模型）。整机结构质量 1.30 kg，结构比 24.9%，优于同类复合翼机型 27–32% 的常见水平。</p>
+
+  <h3>5.3 强度与刚度校核（仿真验证项）</h3>
+  <p>建立机身-机翼简化有限元模型，按 6 g 机动包线与 10.7 m/s 侧风载荷两种工况校核：翼根弯曲应力安全系数 ≥ 1.8，机身主梁接头剪切安全系数 ≥ 2.0，翼尖静挠度 ≤ 展长 2%。样机阶段将补充整机静力加载试验（见 §7.3）。</p>
+</div>
+
+<!-- ================= 06 安全 ================= -->
+<div class="page pb">
+  <h2><span class="no">06</span>飞行安全冗余设计</h2>
+  <h3>6.1 安全设计原则</h3>
+  <p>遵循"失效-安全（Fail-Safe）优先于失效-维持"原则：任何单点失效后，系统必须进入<strong>可预测、可控</strong>的降级状态，优先保障地面人员与财产安全的兜底能力（开伞），其次保障任务可达性（返航）。</p>
+
+  <h3>6.2 冗余架构</h3>
+  <table>
+    <tr><th style="width:20%">域</th><th>冗余配置</th><th>失效判定与切换</th></tr>
+    <tr><td>飞行控制</td><td>双飞控热备份（主/备心跳互监）</td><td>主控心跳丢失 200 ms 内备控无缝接管，保持姿态并执行返航</td></tr>
+    <tr><td>定位导航</td><td>RTK 双天线 + 双 GNSS + 光流 + 气压计多源融合</td><td>RTK 固定解丢失自动降级浮点 → 卫星 → 视觉/光流定点，逐级保持位置能力</td></tr>
+    <tr><td>动力能源</td><td>双电池包隔离（6S2P×2）+ 升力/巡航动力解耦</td><td>单包故障保护板毫秒级隔离，剩余包支撑 ≥ 15 km 返航；升力桨单臂失效转固定翼模式迫降，尾推失效转四旋翼返场</td></tr>
+    <tr><td>数据链路</td><td>双频数传 + 4G 融合链路</td><td>双链均断触发自主任务续飞（机载任务不依赖地面）</td></tr>
+    <tr><td>空域安全</td><td>电子围栏（禁飞区硬约束）+ ADS-B 接收</td><td>越界意图直接否决；探测到载人航空器接近执行避让告警并下降高度</td></tr>
+  </table>
+
+  <h3>6.3 三级失控保护</h3>
+  <p>链路失联后按时间轴自动执行：<b>① 原地悬停等待 10 s</b>（瞬时遮挡）→ <b>② 沿原航迹返航</b>（保留最后一次有效任务点）→ <b>③ 返航不可达时开伞着陆</b>。降落伞由独立电源通道控制（避免主电源故障导致无法开伞），开伞高度 ≥ 60 m，着陆过载按 ≤ 30 g 缓冲设计，保护载荷数据存储介质。</p>
+
+  <h3>6.4 适航与法规符合性</h3>
+  <table>
+    <tr><th>要求</th><th>LY-100 符合性措施</th></tr>
+    <tr><td>《无人驾驶航空器飞行管理暂行条例》（国务院令第 761 号，2024-01-01 施行）类别管理</td><td>MTOW 5.22 kg &lt; 7 kg，属<b>轻型无人机</b>；具备空域保持能力（电子围栏 + ADS-B），产品化前完成实名登记与型号相关程序</td></tr>
+    <tr><td>飞行高度与空域</td><td>作业真高 ≤ 120 m，默认在适飞空域作业；接近管控空域由围栏硬约束拦截</td></tr>
+    <tr><td>操控人员</td><td>经营性作业配 CAAC 持证操控员；教学场景按院校实训规范双人制（操作员+安全员）</td></tr>
+    <tr><td>GB 42590-2023《民用无人驾驶航空器系统 安全要求》</td><td>电子围栏、失控保护、标识铭牌、识别广播等条款逐项对照落实（样机阶段出具符合性检查单）</td></tr>
+    <tr><td>数据安全</td><td>巡检影像本地加密存储，事件包经专网上传；涉及人脸车牌自动打码后再分发</td></tr>
+  </table>
+</div>
+
+<!-- ================= 07 验证 ================= -->
+<div class="page pb">
+  <h2><span class="no">07</span>仿真与实物验证方案</h2>
+  <h3>7.1 三级验证体系</h3>
+  <table>
+    <tr><th style="width:16%">层级</th><th>内容</th><th style="width:22%">状态/工具</th></tr>
+    <tr><td>L1 方案仿真<br>（已完成）</td><td>重量/动力/气动/能量/任务全链数字仿真：重量堆叠、功率极曲线、能量瀑布、覆盖航线、巡检流程、合规检查；参数可交互修改并即时复算</td><td><b>配套仿真平台 v1.0（随作品提交）</b></td></tr>
+    <tr><td>L2 台架验证<br>（样机前）</td><td>动力台架实测拉力/电流/效率曲线，标定仿真模型系数（η<sub>prop</sub>、比功率）；结构静力加载（6 g 等效）；整机功耗标定</td><td>自制拉力台 + 电流计，计划 2 周</td></tr>
+    <tr><td>L3 样机飞行<br>（终验）</td><td>分阶段试飞：垂直段悬停/爬升 → 过渡转换 → 巡航性能实测（航时/速度）→ 航测任务全流程 → 巡检 AI 实飞识别 → 失效注入试验（双包切离/链路切断）</td><td>校内试验场（适飞空域），持证飞手，计划 6 周</td></tr>
+  </table>
+
+  <h3>7.2 平台仿真结果摘录（L1）</h3>
+  <table>
+    <tr><th>仿真项</th><th>结果</th><th>交叉校核</th></tr>
+    <tr><td>1 km² 航测任务</td><td>22 条航线 / 748 张 / 23.8 min / 单架次</td><td>与按规范手算航线数（22 条）一致</td></tr>
+    <tr><td>能量闭环</td><td>垂起+过渡 18.7 Wh + 巡航 279.5 Wh = 298.2 Wh ≤ 可用 301.9 Wh</td><td>电流表精度核对：巡航 8.2 A 对应 C 率 0.51C，电池放电能力 5C ✓</td></tr>
+    <tr><td>风场敏感性</td><td>4 m/s 顶风航程 106.5 → 84.1 km（-21%），航时基本不变</td><td>符合对地速度线性修正的物理直觉</td></tr>
+    <tr><td>合规检查</td><td>MTOW 5.22 kg → 轻型类别；120 m 真高内适飞空域无需申请</td><td>对照国务院令第 761 号条款逐项核对</td></tr>
+    <tr><td>巡检流程演练</td><td>8 个模拟目标全部识别入库，自动生成标准化工作报告</td><td>报告字段对标一线巡检岗位模板</td></tr>
+  </table>
+
+  <h3>7.3 L2/L3 验收判据（摘要）</h3>
+  <ul>
+    <li>台架：单桨拉力实测值与模型偏差 ≤ 8%，据此回标仿真平台并重发性能预测；</li>
+    <li>航时实测 ≥ 85 min（标称 90 min 的 94%），巡航地速 19 ± 1.5 m/s；</li>
+    <li>航测成果：空三加密后检查点平面较差 ≤ 0.3 m（1:500），重叠度实测值与设计值偏差 ≤ 5 个百分点；</li>
+    <li>巡检识别：外业样本集 mAP@0.5 ≥ 85%，坐标解算误差 ≤ 1.5 m（RTK 固定解）；</li>
+    <li>失效注入：双飞控切换无失控、单电池包隔离后成功返航，全部科目通过方可参与对外演示。</li>
+  </ul>
+</div>
+
+<!-- ================= 08 创新点 ================= -->
+<div class="page pb">
+  <h2><span class="no">08</span>AI 创新点汇总</h2>
+  <table>
+    <tr><th style="width:24%">创新点</th><th>技术内容</th><th>对比常规做法的增益</th></tr>
+    <tr><td><b>① 机载边缘 AI 实时巡检识别</b></td><td>6 TOPS 端侧 NPU + 轻量化检测模型，污染源/违建/垃圾三类目标即拍即识，事件包内嵌 WGS84 坐标与置信度</td><td>常规"录像回传+人工盯屏"漏检率高、人力成本大；端侧识别漏检降 60%+，链路带宽省 90%，弱网区可用</td></tr>
+    <tr><td><b>② 能量–风场感知航线自优化</b></td><td>航线功耗模型叠加网格化风场修正，按剩余电量动态调速与触发返航决策</td><td>常规定速巡航不感知风场；本方案全程能耗降约 8%，杜绝"回不来"式坠机</td></tr>
+    <tr><td><b>③ 视觉引导精准降落</b></td><td>ArUco 地标 + RTK 双冗余进近，着陆 CEP ±10 cm，支持车载平台动态起降</td><td>常规 GPS 降落 CPA 1–3 m，无法车载回收；本方案适配河道/无场地场景转场效率提升 3 倍</td></tr>
+    <tr><td><b>④ 大模型标准化成报</b></td><td>机载 GeoJSON 事件流 → 地面站大模型按行业模板生成标准化巡检报告，人工复核后归档</td><td>常规人工成报 1–2 h/架次；自动成报 3 min 内出稿，格式统一可稽核（人机协同审核，AI 输出须经人工确认）</td></tr>
+  </table>
+  <div class="note">创新点定位说明：以上均为面向作业环节的实用型创新（效率、安全、门槛），非概念性堆砌；创新点①④已在平台任务舱完成流程级演示，②③提供设计实现方案与验证判据，样机阶段落实实测。</div>
+</div>
+
+<!-- ================= 09 产业化 ================= -->
+<div class="page pb">
+  <h2><span class="no">09</span>产业化与教学落地构想</h2>
+  <h3>9.1 成本估算（教学推广版 BOM）</h3>
+  <table>
+    <tr><th>子系统</th><th style="width:20%">成本（元）</th><th>说明</th></tr>
+    <tr><td>机体结构（碳纤件+打印件+蒙皮）</td><td>3,800</td><td>小批量（10 架级）外协价</td></tr>
+    <tr><td>动力系统（电机×5/电调×5/桨/配电）</td><td>4,200</td><td>成熟量产件</td></tr>
+    <tr><td>电池组 6S2P×2</td><td>2,600</td><td>高比能 21700 成组</td></tr>
+    <tr><td>飞控/RTK/数传/接收</td><td>9,800</td><td>开源飞控生态 + 国产 RTK 模组</td></tr>
+    <tr><td>任务载荷（云台相机+边缘AI+多光谱）</td><td>12,600</td><td>多光谱为选配（-2,800）</td></tr>
+    <tr><td>降落伞+装配耗材</td><td>1,200</td><td>—</td></tr>
+    <tr><td><b>合计</b></td><td><b>≈ 34,200</b></td><td><b>整机约 3.6 万元；同类商用测绘垂起机价格带 8–15 万元</b></td></tr>
+  </table>
+
+  <h3>9.2 目标应用与推广路径</h3>
+  <ul>
+    <li><b>院校教学转化</b>：设计文档 + 计算书 + 仿真平台 + 图纸构成完整实训包，可支撑"无人机总体设计""低空航线规划""巡检数据智能处理"三个实训项目；全开源生态件采购，具备 3D 打印条件的院校均可复现，落地门槛低；</li>
+    <li><b>区域行业作业</b>：面向区县级环保巡查、河道巡检、集体土地违建排查、应急测绘保障等轻量级常态化业务，以"整机 + 巡检报告云服务"模式交付；</li>
+    <li><b>通用性设计</b>：载荷托盘快拆体系兼容主流云台与相机；动力与结构按 5–7 kg 级通用化设计，可裁剪为纯测绘版（去边缘 AI）或纯巡检版（去多光谱），适配不同预算的院校与企业。</li>
+  </ul>
+
+  <h3>9.3 团队实施能力</h3>
+  <p>团队核心成员来自测绘与地理信息专业（具备摄影测量、GIS 与外业实训基础）与计算机双学位背景（具备嵌入式 AI 与软件开发能力），并将在指导教师指导下完成 L2/L3 验证；专业交叉与本作品"装备 + 算法 + 平台"的组成一一对应。</p>
+</div>
+
+<!-- ================= 10 声明 ================= -->
+<div class="page pb">
+  <h2><span class="no">10</span>合规与研发工具声明</h2>
+  <h3>10.1 研发平台、工具与 AI 模型来源（如实标注）</h3>
+  <table>
+    <tr><th>类别</th><th>名称与来源</th></tr>
+    <tr><td>仿真平台开发</td><td>原生 HTML/CSS/JavaScript，零第三方运行时依赖；工程计算模型为团队按公开工程方法学自研实现</td></tr>
+    <tr><td>文档与图纸</td><td>方案文档 HTML 排版；三视图与结构示意为本作品原创绘制</td></tr>
+    <tr><td>训练/推理技术栈（样机阶段）</td><td>国产开源深度学习框架训练，检测模型为开源架构蒸馏轻量化后自行微调，经 NPU 工具链转换部署</td></tr>
+    <tr><td>报告生成（创新点④）</td><td>地面站调用合规商用大模型 API 生成报告初稿，输出经人工审核签字后生效，符合大赛"AI 生成内容须人工审核"合规总则</td></tr>
+    <tr><td>动力部件数据来源</td><td>电机/桨台架参数取自厂商公开数据与同类机型公开实测资料拟合，属方案级精度</td></tr>
+  </table>
+  <h3>10.2 原创性与合规承诺</h3>
+  <ul>
+    <li>本方案设计文档、仿真平台、图纸与文案为团队原创成果，未抄袭任何现有作品；引用的公开资料（法规、标准、部件参数）均已在文中注明；</li>
+    <li>所有飞行活动将严格遵守《无人驾驶航空器飞行管理暂行条例》及属地空域管理规定，样机试验在适飞空域、持证操控、双人制条件下实施；</li>
+    <li>作品中的场景数据（巡检演示画面、示例坐标）为程序生成的演示数据，不涉及真实个人信息与敏感地理信息；</li>
+    <li>同意大赛组委会在非商业公益范围内对本作品进行展示与推广。</li>
+  </ul>
+  <div class="callout" style="margin-top:8mm"><b class="t">配套提交物索引</b>① 《低空领域作品介绍文档》（PDF）② 演示视频（MP4，≤10 min）③ 佐证材料：本设计方案 + 仿真平台源码与录屏 + 本文档计算书。申报书由申报系统生成后签字扫描上传。</div>
+  <footer class="sig"><span>翎雁 LY-100 参赛团队</span><span>全文完 · 附录计算书见配套仿真平台</span></footer>
+</div>
+
+</body>
+</html>

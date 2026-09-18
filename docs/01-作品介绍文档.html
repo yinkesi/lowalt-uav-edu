@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>低空领域作品介绍文档 · 翎雁 LY-100</title>
+<style>
+@font-face{font-family:"Figtree";src:url("../simulator/assets/fonts/figtree-var.woff2") format("woff2");font-weight:300 900;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("../simulator/assets/fonts/jetbrains-mono-var.woff2") format("woff2");font-weight:300 800;font-display:swap}
+:root{--ink:#212226;--ink2:#5d6270;--ink3:#8f95a3;--hair:rgba(33,34,38,.14);--grad:linear-gradient(100deg,#4285f4 8%,#9b72cb 52%,#d96570 96%);--sans:"Figtree","PingFang SC","Microsoft YaHei UI",sans-serif;--mono:"JetBrains Mono",Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);font-size:10.5pt;line-height:1.75;background:#f1f3f7}
+.page{width:210mm;min-height:297mm;margin:10mm auto;background:#fff;padding:20mm 18mm;box-shadow:0 8px 40px rgba(0,0,0,.12)}
+@media print{body{background:#fff}.page{margin:0;box-shadow:none;width:auto;min-height:auto;padding:14mm 16mm}h2,h3{break-after:avoid}table,figure,.callout,.note,.formula,.metric-row{break-inside:avoid}tr{break-inside:avoid}li{break-inside:avoid}}
+h1{font-size:20pt;font-weight:560;letter-spacing:-.02em;line-height:1.25;margin:5mm 0 3mm}
+h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:13pt;font-weight:580;margin:7mm 0 2.5mm;padding-top:2mm;border-top:2.5px solid var(--ink)}
+h2 .no{font-family:var(--mono);font-size:9.5pt;color:var(--d96570,#d96570);margin-right:2.4mm}
+p{margin:0 0 2.6mm;text-align:justify}
+ul,ol{margin:0 0 2.6mm 5.5mm}li{margin-bottom:1.2mm}
+table{width:100%;border-collapse:collapse;margin:3mm 0 4mm;font-size:9pt}
+th{background:#f1f3f7;text-align:left;font-weight:600;padding:2.2mm 3mm;border:1px solid var(--hair)}
+td{padding:2mm 3mm;border:1px solid var(--hair);vertical-align:top}
+tr:nth-child(even) td{background:#fafbfc}
+.kw{display:inline-block;padding:1.2mm 3.5mm;border:1px solid var(--hair);border-radius:99px;font-size:9.5pt;margin:0 2mm 2mm 0;background:#f8f9fb}
+.note{font-size:8.5pt;color:var(--ink2);background:#f8f9fb;border:1px solid var(--hair);border-radius:2mm;padding:2.5mm 4mm;margin:2.5mm 0}
+.callout{background:linear-gradient(135deg,rgba(66,133,244,.07),rgba(217,101,112,.05));border:1px solid rgba(66,133,244,.22);border-radius:3mm;padding:3.5mm 5mm;margin:3mm 0}
+footer.sig{margin-top:8mm;padding-top:3mm;border-top:1px solid var(--hair);font-size:8pt;color:var(--ink3);display:flex;justify-content:space-between}
+.eyebrow{font-family:var(--mono);font-size:8pt;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">低空领域作品介绍文档 · 2026"AI+教育"创新应用技能大赛 · 大学生 AI 创新创业组 · 低空装备技术应用赛道（科目一：低空装备技术创新赛 · 本科组）</span>
+  <h1>翎雁 LY-100 <span class="g">低空智能巡检测绘飞行器</span><br>一体化设计与仿真验证</h1>
+
+  <h2>一、成果名称</h2>
+  <p>翎雁 LY-100 低空智能巡检测绘飞行器一体化设计与仿真验证（含配套"一体化设计与任务仿真平台"）。</p>
+
+  <h2>二、核心关键词（3–5 个）</h2>
+  <p>
+    <span class="kw">复合翼垂起无人机</span>
+    <span class="kw">机载边缘 AI</span>
+    <span class="kw">低空巡检</span>
+    <span class="kw">应急测绘</span>
+    <span class="kw">一体化设计与仿真</span>
+  </p>
+
+  <h2>三、作品整体概述</h2>
+  <p>翎雁 LY-100 是一款面向低空经济一线作业的复合翼垂起（QuadPlane VTOL）智能飞行器，围绕垂直起降免场地与固定翼长航时两种能力的兼得问题，完成总体构型、动力匹配、任务载荷、轻量化结构、安全冗余五大模块的一体化设计：最大起飞重量 5.22 kg（《无人驾驶航空器飞行管理暂行条例》轻型类别），标称航时 90 min、航程 100 km，垂起四桨 + 尾推巡航的双动力分区架构兼顾楼群间垂直爬升与 19 m/s 经济巡航；任务载荷以三轴云台可见光相机（GSD 1.64 cm @120 m，满足 1:500 航测）为核心，可选装五通道多光谱模块；安全设计覆盖飞控/能源/定位/数据四域冗余与三级失控保护。</p>
+  <p>作品的智能化主线是"机载边缘 AI + 数据自动闭环"：6 TOPS 端侧 NPU 对污染源、违法建筑、建筑垃圾三类巡检目标即拍即识，事件包自动内嵌 WGS84 坐标与置信度，只回传事件不回传视频（链路带宽节省约 90%）；地面站调用合规大模型按行业模板 3 分钟内生成标准化巡检工作报告，经人工复核归档。此外还包括能量–风场感知的航线自优化（全程能耗降约 8%）与 ArUco+RTK 视觉引导 ±10 cm 精准降落（支持车载动态起降）两项创新。</p>
+  <p>全部设计参数由团队自研的"一体化设计与任务仿真平台"（网页端，零依赖离线可用）数字验证：重量堆叠、功率极曲线、能量瀑布、航测覆盖航线、巡检全流程、法规合规检查均可交互复算，形成"设计—仿真—迭代"闭环；并规划了台架标定与样机试飞两级实物验证（判据已量化）。整机材料成本约 3.6 万元，全开源生态部件可复现，兼具工程落地价值与院校实训推广价值。</p>
+
+  <h2>四、低空专业教学现存痛点及对应解决方案</h2>
+  <table>
+    <tr><th style="width:34%">现存痛点</th><th>本作品对应解决方案</th></tr>
+    <tr><td><b>装备贵、损耗大</b>：商用测绘垂起机 8–15 万元/架，院校实训摔机即高额损失，实训架次被压缩</td><td>整机 BOM 约 3.6 万元、全开源生态件可自修自换；配套仿真平台承担"先摔虚拟机、再上真机"的试错前置，实训损耗可控</td></tr>
+    <tr><td><b>重操作、轻设计</b>：多数实训停留在飞手操作取证，学生缺少总体-动力-载荷-安全的整机设计训练</td><td>本作品提供"设计文档 + 计算书 + 可交互仿真平台"完整设计链路，学生修改电池/载荷参数即可观察重量、航时、合规判定的联动变化，把设计思维训练落到实处</td></tr>
+    <tr><td><b>巡检数据"采而不智"</b>：巡检实训止步于拍照录像，缺少 AI 识别、坐标标定、标准成报的岗位级数据链训练</td><td>平台任务舱完整演练"机载识别 → GeoJSON 事件流 → 标准化工作报告"流程（对应巡检岗位真实作业规范），并规划外业实测科目（mAP@0.5 ≥ 85%、解算误差 ≤ 1.5 m 判据）</td></tr>
+    <tr><td><b>法规合规教育缺位</b>：学生作业时对类别管理、真高限制、空域申请缺乏系统认知</td><td>平台安全舱内置基于国务院令第 761 号的合规检查器，改参数即出判定，把"合规"变成实训必过环节</td></tr>
+  </table>
+
+  <h2>五、课程体系与实训教学创新点</h2>
+  <ul>
+    <li><b>一个载体、三门实训</b>：以 LY-100 为载体形成"无人机总体设计（配重与性能复算）→ 低空航线规划与航测实施（配覆盖仿真）→ 巡检数据智能处理（配识别与成报演练）"三模块实训链，直接映射低空巡检、测绘、运维三类岗位能力；</li>
+    <li><b>数字孪生前置</b>：所有外业科目先在仿真平台过关（单架次可行性、能量闭环、合规清单）方可申请实飞，形成"虚拟—台架—实飞"三级递进的安全实训制度；</li>
+    <li><b>人机协同考核</b>：实训成绩由"仿真关 + 实操关 + AI 成报人工复核关"三部分构成，把大赛要求的"AI 生成内容人工审核"制度转化为教学考核环节；</li>
+    <li><b>岗课赛证融通</b>：实训科目对标低空一线岗位标准与无人机操控员执照考核内容，赛事任务（本赛道巡检科目）即实训项目。</li>
+  </ul>
+
+  <h2>六、校内落地应用场景</h2>
+  <p>依托同济大学测绘与地理信息学院实测实训基础：</p>
+  <ul>
+    <li><b>《摄影测量与遥感》课程航测实训</b>：以 1 km² 标准测区为科目，学生用平台完成航线设计（GSD/重叠度/架次），随后实施外业采集与空三成图，检查点精度按 1:500 验收；</li>
+    <li><b>校园周边河道巡检示范</b>：在适飞空域内对示范河段执行常态化巡检演练，输出标准化巡检报告送河长制工作参考（演示阶段，数据脱敏）；</li>
+    <li><b>双学位交叉实训</b>：测绘学生负责任务规划与成果质检，计算机双学位学生负责边缘模型微调与平台迭代，模拟真实低空数据团队分工。</li>
+  </ul>
+
+  <h2>七、人才培养实施成效</h2>
+  <p><b>阶段性成效</b>：作品已完成五大模块一体化设计全套文档与计算书、仿真验证平台 v1.0（设计/性能/任务/安全四舱，参数交互实时复算）、L1 级仿真验证与合规检查，形成可教学、可复现、可考核的完整实训包；团队在研制过程中完成了低空法规、气动与动力匹配、摄影测量重叠度设计、边缘 AI 部署等知识体系的系统梳理。</p>
+  <p><b>预期成效（按第 7 章验证计划推进）</b>：台架与样机试飞完成 L2/L3 验证并回标仿真平台；形成"实训指导手册 + 实训考核表 + 课件资源包"成套教学资源，支撑校内 2 门课程实训改造，并向兄弟院校低空相关专业推广；巡检示范在 1 个真实业务场景落地试运行，学生全程参与岗位级作业流程并取得相应操控资质。</p>
+  <div class="note">诚实性说明：本作品当前处于"方案设计完成 + L1 仿真验证完成"阶段，上述预期成效与量化判据将随台架/样机验证计划逐步兑现，相关实测数据将在后续材料中更新提交。</div>
+
+  <div class="callout"><b>配套提交物</b>：① 项目申报书（系统生成）② 《一体化设计方案》（PDF，含计算书与图纸）③ 演示视频（MP4 ≤ 10 min）④ 佐证材料：仿真平台源码/录屏 + 本文档。AI 生成内容均已人工审核修订。</div>
+
+  <footer class="sig"><span>翎雁 LY-100 参赛团队（同济大学）</span><span>2026-09 · REV 1.0</span></footer>
+</div>
+</body>
+</html>
